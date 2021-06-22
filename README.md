@@ -4,10 +4,13 @@ This repository contains scripts that can be used to explore the numerical solut
 ## Model 1
 
 We consider a population balance model of the form: 
-$$
+<!-- $$
 \frac{\partial f}{\partial t} + g\frac{\partial f}{\partial a} = 0 \ , \ f(t=0,a) = f_{0},
-$$
-where $f$ is the number density, $t$ is time, $a$ can potentially be the age or length  and $g$ is a constant and positive growth rate. A Neumann boundary condition is imposed on the right boundary of the domain and a modified Dirichlet boundary condition on the left domain which specifies that cell at the ghost node on the left domain (i.e. $a < 0$) is 0. Refer to the main text for a more detailed explanation. 
+$$ -->
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{\partial f}{\partial t} %2B g\frac{\partial f}{\partial a} = 0 \ , \ f(t=0,a) = f_{0},">
+
+where <img src="https://render.githubusercontent.com/render/math?math=f"> is the number density, <img src="https://render.githubusercontent.com/render/math?math=t">  is time, <img src="https://render.githubusercontent.com/render/math?math=a"> can potentially be the age or length or any other appropriate variable and <img src="https://render.githubusercontent.com/render/math?math=g"> is a constant and positive growth rate. A Neumann boundary condition is imposed on the right boundary of the domain and a modified Dirichlet boundary condition on the left domain which specifies that cell at the ghost node on the left domain (i.e. <img src="https://render.githubusercontent.com/render/math?math=a<0"> ) is 0. Refer to the main text for a more detailed explanation. 
 
 ## Model 2
 
