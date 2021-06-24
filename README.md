@@ -20,7 +20,7 @@ On a separate script, the function can be called as follows:
 
 The various input and output arguments are outlined in the comments within the script. The mesh and the values of <img src="https://render.githubusercontent.com/render/math?math=f_{0}">should be precomputed and supplied accordingly. An example plot can be seen below: 
 
-![model1](C:\Users\Pavan\Projects\PBM_Schemes\model1.png)
+![model1](./Figures/model1.png)
 
 ## Model 2
 
