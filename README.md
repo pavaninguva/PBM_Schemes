@@ -18,16 +18,16 @@ On a separate script, the function can be called as follows:
 [f, stride_vec] = model_1(mesh,f0,0.5,0.5,"Upwind",[0,1],"output_style","stride", 20);
 ```
 
-The various input and output arguments are outlined in the comments within the script. The mesh and the values of <img src="https://render.githubusercontent.com/render/math?math=f_{0}">should be precomputed and supplied accordingly. An example plot can be seen below: 
+The various input and output arguments are outlined in the comments within the function script. The mesh and the values of <img src="https://render.githubusercontent.com/render/math?math=f_{0}">should be precomputed and supplied accordingly. An example plot can be seen below: 
 
 ![model1](./Figures/model1.png)
 
 ## Model 2
 
 We consider a population balance model with a variable growth rate as follows: 
-$$
-\frac{\partial f}{\partial t} + \frac{\partial (g(a)f)}{\partial a} = 0 \ , \ f(t=0,a) = f_{0}.
-$$
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{\partial f}{\partial t} %2B \frac{\partial ( g(a) f)}{\partial a} = 0 \ , \ f(t=0,a) = f_{0},">
+
 The boundaries of the domain are treated in the same manner as model 1. 
 
 ## Model 3

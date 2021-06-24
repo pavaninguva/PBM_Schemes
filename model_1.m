@@ -41,7 +41,7 @@ function [f,varargout] = model_1(mesh, f0, u, CFL, scheme, t_vec, varargin)
 %compute dx and dt using mesh and CFL: 
 n_cells = length(mesh) -1;
 dx = (mesh(end) - mesh(1))/n_cells;
-dt = CFL*(dx)/u
+dt = CFL*(dx)/u;
 
 %initialize f, t and counter
 f_old = f0; %f_old corresponds to the solution from the previous timestep
@@ -58,11 +58,42 @@ while t < t_vec(2) - dt*1e-3
            f_new(i) = f_old(i) - CFL*(f_old(i) - f_old(i-1));
        end
        
+   elseif scheme =="Lax Wendroff"
+      %update first node
+      f_new(1) = f_old(1) - 0.5*CFL*f_old(2) + 0.5*(CFL^2)*(f_old(2) - 2*f_old(1));
+      %update nodes with for loop
+      for i = 2:length(mesh) -1
+          f_new(i) = f_old(i) - 0.5*CFL*(f_old(i+1) - f_old(i-1)) ...
+                   + 0.5*(CFL^2)*(f_old(i+1) -2*f_old(i) + f_old(i-1));
+      end
+      %update last node
+      f_new(length(mesh)) = f_old(end) + (CFL^2)*(f_old(end-1) - f_old(end));
+      
+   elseif scheme == "Leapfrog"
+       %use Upwind to compute the first timestep
+       if counter == 1
+           %first node
+           f_new(1) = f_old(1) - CFL*f_old(1);
+           %rest
+           for i = 2:length(mesh)
+              f_new(i) = f_old(i) - CFL*(f_old(i) - f_old(i-1)); 
+           end
+       else
+           %update first node
+           f_new(1) = f_old_old(1) - CFL*f_old(2);
+           %update nodes with for loop
+           for i = 2:length(mesh) -1
+               f_new(i) = f_old_old(i) - CFL*(f_old(i+1) - f_old(i-1));
+           end
+           %update last node
+           f_new(length(mesh)) = f_old_old(end);
+       end
    end
-   
+       
    %update counters etc
    counter = counter +1;
    t = t + dt;
+   f_old_old = f_old;
    f_old = f_new;
    
    %outputs
@@ -74,7 +105,6 @@ while t < t_vec(2) - dt*1e-3
            stride_vec((((counter-1)/varargin{3}) +1)) = t;
        end
    end
-   
 end
    
 %output 
@@ -85,12 +115,7 @@ else
 end
 
 stride_vec(1) = t_vec(1);
-varargout{1} = stride_vec;
-
-
-   
-    
-    
+varargout{1} = stride_vec;    
 end
 
 
