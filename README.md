@@ -30,6 +30,12 @@ We consider a population balance model with a variable growth rate as follows:
 
 The boundaries of the domain are treated in the same manner as model 1. 
 
+As described in the manuscript, three model formulations were considered: 
+
+1. Applying finite differencing directly on the equation on a uniform mesh (`model_2_conservative_uniform.m`)
+2. Applying finite differencing on the conservative model formulation using a non-uniform mesh to enforce CFL = 1.0 at each point (`model_2_conservative_nonuniform.m`)
+3. Applying finite differencing on the transformed model formulation with the non-uniform mesh from the second approach (`model_2_transformed_nonuniform.m`)
+
 ## Model 3
 
 A non-homogeneous population balance model of the form is considered: 
