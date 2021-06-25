@@ -22,10 +22,8 @@ legend(string(stride_vec))
 %% Model 2
 
 %Using model_2_conservative_uniform.m
-u = growth_rate(mesh);
-uprime = dudx(mesh);
 f0_2 = 50*exp(-((mesh-0.2).^2)/0.0005);
-[f2,stride_vec2] = model_2_conservative_uniform(mesh,f0_2, u, uprime, 1.0, "Upwind", [0,1],"output_style","stride",20);
+[f2,stride_vec2] = model_2_conservative_uniform(mesh,f0_2, @(x)growth_rate(x), @(x)dudx(x), 1.0, "Lax Wendroff", [0,1],"output_style","stride",20);
 
 %simple plotting
 figure(2)

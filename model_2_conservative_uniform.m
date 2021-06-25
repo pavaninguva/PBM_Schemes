@@ -10,15 +10,15 @@
 
 
 
-function [f,varargout] = model_2_conservative_uniform(mesh, f0, u, uprime, CFL, scheme, t_vec, varargin)
+function [f,varargout] = model_2_conservative_uniform(mesh, f0, ufun, uprimefun, CFL, scheme, t_vec, varargin)
 
 %% Description
 
 %INPUTS
 %mesh: input the mesh as an array
 %f0: initial profile which should be the same size as mesh
-%u: input u(x) as an array, should be same size as mesh
-%uprime: input u'(x) as an array as the same size as the mesh. Used for the
+%u: input u(x) as a function handle
+%uprime: input u'(x) as a function handle. Used for the
 %Lax-Wendroff scheme. 
 %CFL: specify CFL, typically between 0-1
 %scheme: Three schemes are implemented: Upwind, Lax-Wendroff and Leapfrog
@@ -43,7 +43,12 @@ function [f,varargout] = model_2_conservative_uniform(mesh, f0, u, uprime, CFL, 
 %compute dx and dt using mesh and CFL: 
 n_cells = length(mesh) -1;
 dx = (mesh(end) - mesh(1))/n_cells;
+u = ufun(mesh);
+uprime = uprimefun(mesh);
 dt = CFL*(dx)/(max(u));
+
+%for lax wendroff
+u_n1 = ufun(mesh(end)+dx);
 
 %Initialize, f, t and counter
 f_old = f0;
@@ -61,6 +66,28 @@ while t < t_vec(2) + dt*1e-3
        for i = 2:length(mesh)
           f_new(i) = f_old(i) - (dt/dx)*(u(i)*f_old(i) - u(i-1)*f_old(i-1));
        end
+       
+   elseif scheme == "Lax Wendroff"
+       %update first node
+       f_new(1) = f_old(1) + (0.5*(dt^2)*uprime(1) - dt)*(u(2)*f_old(2))/(2*dx) ...
+                  + 0.5*((dt/dx)^2)*u(1)*(u(2)*f_old(2) - 2*u(1)*f_old(1));
+       %Update the rest 
+       for i = 2:length(mesh) - 1
+          f_new(i) = f_old(i) ...
+                     + (0.5*(dt^2)*uprime(i)- dt)*(u(i+1)*f_old(i+1) - u(i-1)*f_old(i-1))/(2*dx) ...
+                     +(0.5*((dt/dx)^2)*u(i))*(u(i+1)*f_old(i+1) - 2*u(i)*f_old(i) + u(i-1)*f_old(i-1));
+       end
+       %update last node:
+       f_new(length(mesh)) = f_old(end) ...
+                             + (0.5*(dt^2)*uprime(end)- dt)*(u_n1 - u(end-1))*f_old(end-1)/(2*dx) ...
+                             +(0.5*((dt/dx)^2)*u(end))*(u_n1*f_old(end-1) - 2*u(end)*f_old(end) + u(end-1)*f_old(end-1));
+   
+   elseif scheme == "Leapfrog"
+       disp("True")
+       
+                             
+       
+       
    end
    
    %update counters etc
