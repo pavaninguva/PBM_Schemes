@@ -19,7 +19,7 @@ The various input and output arguments are outlined in the comments within the f
 
 An example plot can be seen below: 
 
-<img src="./Figures/model1.png" alt="model1" style="zoom:50%;" />
+<img src="./Figures/model1.png" alt="model1" style="zoom: 33%;" />
 
 ## Model 2
 
@@ -57,19 +57,26 @@ end
 
 ### Conservative, Non-uniform Grid
 
+The second formulation can be employed as follows: 
+
+```matlab
+[f3, mesh3, stride_vec3] = model_2_conservative_nonuniform(0.01,@(x)50*exp(-((x-0.2).^2)/0.0005),@(x)growth_rate(x), @(x)dudx(x), "Upwind", [0,1],[0,1], "output_style","stride",20);
+```
+
+Note that there is a difference in the input arguments. The function computes the mesh for a given <img src="https://render.githubusercontent.com/render/math?math=\Delta t"> and <img src="https://render.githubusercontent.com/render/math?math=g(a)">. Correspondingly, the initial profile <img src="https://render.githubusercontent.com/render/math?math=f_{0}"> should be inputted as a function handle as well. 
+
 ### Transformed, Non-uniform Grid
 
 ### Sample Plot
 
 A sample plot can be seen below:
 
-<img src="./Figures/model2.png" alt="model2" style="zoom: 25%;" />
+<img src="./Figures/model2.png" alt="model2" style="zoom: 20%;" />
 
 ## Model 3
 
 A non-homogeneous population balance model of the form is considered: 
-$$
-\frac{\partial f}{\partial t} + g\frac{\partial f}{\partial a} = \alpha(a)
-$$
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{\partial f}{\partial t} %2B g\frac{\partial f}{\partial a} = \alpha(a) \ , \ f(t=0,a) = f_{0},">
 
 
