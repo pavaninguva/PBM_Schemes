@@ -4,7 +4,7 @@
 
 %% Model 1
 %define mesh
-mesh = linspace(0,1,201);
+mesh = linspace(0,1.5,101);
 
 %define f0
 f0 = (1/0.01)*exp(-mesh./0.01);
@@ -23,11 +23,21 @@ legend(string(stride_vec))
 
 %Using model_2_conservative_uniform.m
 f0_2 = 50*exp(-((mesh-0.2).^2)/0.0005);
-[f2,stride_vec2] = model_2_conservative_uniform(mesh,f0_2, @(x)growth_rate(x), @(x)dudx(x), 1.0, "Lax Wendroff", [0,1],"output_style","stride",20);
+[f2,stride_vec2] = model_2_conservative_uniform(mesh,f0_2, @(x)growth_rate(x), @(x)dudx(x), 1.0, "Lax Wendroff", [0,1],"output_style","final");
 
 %simple plotting
 figure(2)
 plot(mesh,f2)
+ylabel("f")
+xlabel("x")
+legend(string(stride_vec2))
+
+%using model_2_conservative_nonuniform.m
+[f3, mesh3, stride_vec3] = model_2_conservative_nonuniform(0.01,@(x)50*exp(-((x-0.2).^2)/0.0005),@(x)growth_rate(x), @(x)dudx(x), "Upwind", [0,1],[0,1], "output_style","stride",20);
+
+%simple plotting
+figure(3)
+plot(mesh3,f3)
 ylabel("f")
 xlabel("x")
 legend(string(stride_vec2))

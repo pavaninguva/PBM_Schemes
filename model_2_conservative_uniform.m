@@ -47,7 +47,7 @@ u = ufun(mesh);
 uprime = uprimefun(mesh);
 dt = CFL*(dx)/(max(u));
 
-%for lax wendroff
+%for lax wendroff and leapfrog
 u_n1 = ufun(mesh(end)+dx);
 
 %Initialize, f, t and counter
@@ -57,7 +57,6 @@ t = t_vec(1);
 counter = 1;
 
 %start simulation
-
 while t < t_vec(2) + dt*1e-3
    if scheme == "Upwind"
        %update first node
@@ -83,11 +82,24 @@ while t < t_vec(2) + dt*1e-3
                              +(0.5*((dt/dx)^2)*u(end))*(u_n1*f_old(end-1) - 2*u(end)*f_old(end) + u(end-1)*f_old(end-1));
    
    elseif scheme == "Leapfrog"
-       disp("True")
-       
-                             
-       
-       
+       %Use upwind to compute first timestep
+       if counter == 1
+           %update first node:
+           f_new(1) = f_old(1) - (dt/dx)*(u(1)*f_old(1));
+           %update nodes with for loop
+           for i = 2:length(mesh)
+                f_new(i) = f_old(i) - (dt/dx)*(u(i)*f_old(i) - u(i-1)*f_old(i-1));
+           end
+       else
+           %update first node
+           f_new(1) = f_old_old(1) - (dt/dx)*(u(2)*f_old(2));
+           %update nodes with for loop
+           for i = 2:length(mesh)-1
+              f_new(i) = f_old_old(i) - (dt/dx)*(u(i+1)*f_old(i+1) - u(i-1)*f_old(i-1)); 
+           end
+           %update last node
+           f_new(length(mesh)) = f_old_old(end) - (dt/dx)*(u_n1 - u(end-1)*f_old(end-1)); 
+       end
    end
    
    %update counters etc
@@ -95,7 +107,6 @@ while t < t_vec(2) + dt*1e-3
    t = t + dt;
    f_old_old = f_old;
    f_old = f_new;
-   
    
    %outputs
    if varargin{2} == "all"
