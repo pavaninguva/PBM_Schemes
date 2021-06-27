@@ -90,11 +90,43 @@ while t < t_vec(2) - dt*1e-3
            f_new(i) = f_old(i) - (dt/(mesh(i) - mesh(i-1)))*(u(i)*f_old(i) - u(i-1)*f_old(i-1));
        end
        
+   elseif scheme == "Lax Wendroff"
+       %update first node
+       f_new(1) = f_old(1) + (0.5*(dt^2)*uprime(1) - dt)*(u(2)*f_old(2))/(mesh(2) - x_0) ...
+                  + (0.5*(dt^2)*u(1))*(u(2)*f_old(2) - 2*u(1)*f_old(1))/((mesh(2) - mesh(1))*(mesh(1) - x_0)) ;
+       %update the rest
+       for i = 2:length(mesh)-1
+          f_new(i) = f_old(i) + (0.5*(dt^2)*uprime(i) - dt)*(u(i+1)*f_old(i+1) - u(i-1)*f_old(i-1))/(mesh(i+1) - mesh(i-1)) ...
+                     + (0.5*(dt^2)*u(i))*(u(i+1)*f_old(i+1) - 2*u(i)*f_old(i) + u(i-1)*f_old(i-1))/((mesh(i+1)-mesh(i))*(mesh(i) - mesh(i-1)));
+       end
+       %Update the last node
+       f_new(length(mesh)) = f_old(end) + (0.5*(dt^2)*uprime(end) - dt)*((u_n1 - u(end-1))*f_old(end-1))/(x_n1 - mesh(end-1)) ...
+                             + (0.5*(dt^2)*u(end))*((u_n1 + u(end-1))*f_old(end-1) - 2*u(end)*f_old(end))/((x_n1-mesh(end))*(mesh(end) - mesh(end-1)));
+       
+   elseif scheme == "Leapfrog"
+       if counter == 1
+           %update first node
+           f_new(1) = f_old(1) - (dt/(mesh(1) - x_0))*(u(1)*f_old(1));
+           %update rest of the nodes using for loop
+           for i = 2:length(mesh)
+               f_new(i) = f_old(i) - (dt/(mesh(i) - mesh(i-1)))*(u(i)*f_old(i) - u(i-1)*f_old(i-1));
+           end
+       else
+           %update first node
+           f_new(1) = f_old_old(1) - (2*dt)*(u(2)*f_old(2))/(mesh(2) - x_0);
+           %update the rest 
+           for i = 2:length(mesh) -1
+              f_new(i) = f_old_old(i) - (2*dt)*(u(i+1)*f_old(i+1) - u(i-1)*f_old(i-1))/(mesh(i+1) - mesh(i-1));
+           end
+           %update last node
+           f_new(length(mesh)) = f_old_old(end) - (2*dt)*((u_n1 - u(end-1))*f_old(end-1))/(x_n1 - mesh(end-1));
+       end
+       
    end
    
    
    %update counters etc
-   counter = counter +1;
+   counter = counter +1
    t = t + dt;
    f_old_old = f_old;
    f_old = f_new;

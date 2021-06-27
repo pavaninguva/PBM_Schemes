@@ -33,14 +33,14 @@ xlabel("x")
 legend(string(stride_vec2))
 
 %using model_2_conservative_nonuniform.m
-[f3, mesh3, stride_vec3] = model_2_conservative_nonuniform(0.01,@(x)50*exp(-((x-0.2).^2)/0.0005),@(x)growth_rate(x), @(x)dudx(x), "Upwind", [0,1],[0,1], "output_style","stride",20);
+[f3, mesh3, stride_vec3] = model_2_conservative_nonuniform(0.01,@(x)50*exp(-((x-0.2).^2)/0.0005),@(x)growth_rate(x), @(x)dudx(x), "Lax Wendroff", [0,1],[0,1], "output_style","stride",20);
 
 %simple plotting
 figure(3)
 plot(mesh3,f3)
 ylabel("f")
 xlabel("x")
-legend(string(stride_vec2))
+legend(string(stride_vec3))
 
 
 
