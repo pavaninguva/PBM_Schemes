@@ -42,6 +42,16 @@ ylabel("f")
 xlabel("x")
 legend(string(stride_vec3))
 
+%using model_2_transform_nonuniform.m
+
+[f4, mesh4, stride_vec4] = model_2_transform_nonuniform(0.005,@(x)50*exp(-((x-0.2).^2)/0.0005),@(x)growth_rate(x), @(x)dudx(x), "Leapfrog", [0,1],[0,1], "output_style","stride",20);
+
+%simple plotting
+figure(4)
+plot(mesh4,f4)
+ylabel("f")
+xlabel("x")
+legend(string(stride_vec4))
 
 
 

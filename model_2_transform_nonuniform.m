@@ -9,9 +9,9 @@
 % On the right end of the domain, df/dx = 0 is enforced. 
 
 %Instead of inputting a mesh, the function precomputes the mesh to enforce
-%CFL = 1.0 at each point. Therefore, input a desired value of dt. 
+%CFL = 1.0 at each point. Therefore, input a desired value of dt.
 
-function [f,mesh,varargout] = model_2_conservative_nonuniform(dt, f0fun, ufun, uprimefun, scheme, t_vec, x_vec, varargin)
+function [f,mesh,varargout] = model_2_transform_nonuniform(dt, f0fun, ufun, uprimefun, scheme, t_vec, x_vec, varargin)
 
 %% Description
 
@@ -60,17 +60,18 @@ mesh = flip(x(1:end-1));
 x_0 = x(end);
 x_n1 = mesh(end) + ufun(mesh(end))*dt;
 
-
 %% Simulation
 
 %precompute various things and intialize 
 u = ufun(mesh);
 uprime = uprimefun(mesh);
 f0 = f0fun(mesh);
-f_old = f0;
-f_old_old = f0;
 t = t_vec(1);
 counter = 1;
+
+%variable transformation:
+fhat_old = f0.*u;
+fhat_old_old = f0.*u;
 
 %for Lax Wendroff
 u_n1 = ufun(x_n1);
@@ -80,72 +81,76 @@ u_n1 = ufun(x_n1);
 while t < t_vec(2) - dt*1e-3
    if scheme == "Upwind" 
        %update first node
-       f_new(1) = f_old(1) - (dt/(mesh(1) - x_0))*(u(1)*f_old(1));
-       %update rest of the nodes using for loop
+       fhat_new(1) = fhat_old(1) - (u(1)*dt)*fhat_old(1)/(mesh(1) - x_0);
+       %update rest
        for i = 2:length(mesh)
-           f_new(i) = f_old(i) - (dt/(mesh(i) - mesh(i-1)))*(u(i)*f_old(i) - u(i-1)*f_old(i-1));
+          fhat_new(i) = fhat_old(i) - (u(i)*dt)*(fhat_old(i) - fhat_old(i-1))/(mesh(i) - mesh(i-1)); 
        end
        
    elseif scheme == "Lax Wendroff"
        %update first node
-       f_new(1) = f_old(1) + (0.5*(dt^2)*uprime(1) - dt)*(u(2)*f_old(2))/(mesh(2) - x_0) ...
-                  + (0.5*(dt^2)*u(1))*(u(2)*f_old(2) - 2*u(1)*f_old(1))/((mesh(2) - mesh(1))*(mesh(1) - x_0)) ;
+       fhat_new(1) = fhat_old(1) + (0.5*(dt^2)*u(1)*uprime(1) - dt*u(1))*(fhat_old(2))/(mesh(2) - x_0) ...
+                     + (0.5*(dt^2)*(u(1)^2))*(fhat_old(2) - 2*fhat_old(1))/((mesh(2) - mesh(1))*(mesh(1) - x_0));
        %update the rest
        for i = 2:length(mesh)-1
-          f_new(i) = f_old(i) + (0.5*(dt^2)*uprime(i) - dt)*(u(i+1)*f_old(i+1) - u(i-1)*f_old(i-1))/(mesh(i+1) - mesh(i-1)) ...
-                     + (0.5*(dt^2)*u(i))*(u(i+1)*f_old(i+1) - 2*u(i)*f_old(i) + u(i-1)*f_old(i-1))/((mesh(i+1)-mesh(i))*(mesh(i) - mesh(i-1)));
+           fhat_new(i) = fhat_old(i) + (0.5*(dt^2)*u(i)*uprime(i) - dt*u(i))*(fhat_old(i+1) - fhat_old(i-1))/(mesh(i+1) - mesh(i-1)) ...
+                     + (0.5*(dt^2)*(u(i)^2))*(fhat_old(i+1) - 2*fhat_old(i) + fhat_old(i-1))/((mesh(i+1) - mesh(i))*(mesh(i) - mesh(i-1)));
        end
-       %Update the last node
-       f_new(length(mesh)) = f_old(end) + (0.5*(dt^2)*uprime(end) - dt)*((u_n1 - u(end-1))*f_old(end-1))/(x_n1 - mesh(end-1)) ...
-                             + (0.5*(dt^2)*u(end))*((u_n1 + u(end-1))*f_old(end-1) - 2*u(end)*f_old(end))/((x_n1-mesh(end))*(mesh(end) - mesh(end-1)));
-       
+       %update last node
+       %compute the value of fhat^{N+1}_{i} using the ghost cell approach
+       fhat_n1 = (uprime(end)/u(end))*(x_n1 - mesh(end-1))*fhat_old(end) + fhat_old(end-1);
+       %perform the update
+       fhat_new(length(mesh)) = fhat_old(end) + (0.5*(dt^2)*u(end)*uprime(end) - dt*u(end))*(fhat_n1 - fhat_old(end-1))/(x_n1 - mesh(end-1)) ...
+                                + (0.5*(dt^2)*(u(end)^2))*(fhat_n1 - 2*fhat_old(end) + fhat_old(end-1))/((x_n1 - mesh(end))*(mesh(end) - mesh(end-1)));
+                            
    elseif scheme == "Leapfrog"
        if counter == 1
-           %update first node
-           f_new(1) = f_old(1) - (dt/(mesh(1) - x_0))*(u(1)*f_old(1));
-           %update rest of the nodes using for loop
+          %update first node
+           fhat_new(1) = fhat_old(1) - (u(1)*dt)*fhat_old(1)/(mesh(1) - x_0);
+           %update rest
            for i = 2:length(mesh)
-               f_new(i) = f_old(i) - (dt/(mesh(i) - mesh(i-1)))*(u(i)*f_old(i) - u(i-1)*f_old(i-1));
-           end
+              fhat_new(i) = fhat_old(i) - (u(i)*dt)*(fhat_old(i) - fhat_old(i-1))/(mesh(i) - mesh(i-1)); 
+           end 
        else
            %update first node
-           f_new(1) = f_old_old(1) - (2*dt)*(u(2)*f_old(2))/(mesh(2) - x_0);
-           %update the rest 
+           fhat_new(1) = fhat_old_old(1) - (2*dt*u(1))*(fhat_old(2))/(mesh(2) - x_0);
+           %update rest
            for i = 2:length(mesh) -1
-              f_new(i) = f_old_old(i) - (2*dt)*(u(i+1)*f_old(i+1) - u(i-1)*f_old(i-1))/(mesh(i+1) - mesh(i-1));
+               fhat_new(i) = fhat_old_old(i) - (2*dt*u(i))*(fhat_old(i+1) - fhat_old(i-1))/(mesh(i+1) - mesh(i-1));
            end
            %update last node
-           f_new(length(mesh)) = f_old_old(end) - (2*dt)*((u_n1 - u(end-1))*f_old(end-1))/(x_n1 - mesh(end-1));
+           fhat_n1 = (uprime(end)/u(end))*(x_n1 - mesh(end-1))*fhat_old(end) + fhat_old(end-1);
+           fhat_new(length(mesh)) = fhat_old_old(end) - (2*dt*u(end))*(fhat_n1 - fhat_old(end-1))/(x_n1 - mesh(end-1));
        end
-       
+               
+           
    end
-   
    
    %update counters etc
    counter = counter +1;
    t = t + dt;
-   f_old_old = f_old;
-   f_old = f_new;
+   fhat_old_old = fhat_old;
+   fhat_old = fhat_new;
    
    %outputs
    if varargin{2} == "all"
-       f(counter,:) = f_new;
+       f(counter,:) = fhat_new./u;
    elseif varargin{2} == "stride"
        if mod((counter -1), varargin{3}) == 0
-           f((((counter-1)/varargin{3}) +1),:) = f_new;
+           f((((counter-1)/varargin{3}) +1),:) = fhat_new./u;
            stride_vec((((counter-1)/varargin{3}) +1)) = t;
        end
-   end  
+   end
 end
 
 %output 
 if varargin{2} == "all" | varargin{2} == "stride"
     f(1,:) = f0;
 else
-    f = f_new;
+    f = fhat_new./u;
 end
 stride_vec(1) = t_vec(1);
-varargout{1} = stride_vec; 
-
+varargout{1} = stride_vec;
 
 end
+
