@@ -8,19 +8,20 @@
 % which sets the value of the Ghost node at 0 i.e. f(0) = 0
 % On the right end of the domain, df/dx = 0 is enforced. 
 
-function [f,varargout] = model_1(mesh, f0, u, CFL, scheme, t_vec, varargin)
+function [f,varargout] = model_1(N_cells, f0fun, u, CFL, scheme, t_vec,x_vec, varargin)
 
 %% Description
 
 %The inputs and outputs are defined as follows: 
 %INPUTS
-%mesh: input the mesh in the form of an array e.g. linspace
-%f0: Initial profile also in an array which should be the same length as
-%the mesh
+%N_cells: Number of cells in the mesh
+%f0: Initial profile as a function handle
 %u: this is the coefficient of the spatial term in the PDE. 
 %CFL: specify the CFL number, typically between 0-1. 
 %scheme: Three schemes are implemented: Upwind, Lax Wendroff and Leapfrog. 
 %t_vec: Array containing the start and stop time e.g. [0,1] seconds
+%x_vec: Array containing the coordinates of the start and end of the
+%domain.
 
 %varargin: This is to mainly deal with the different forms of outputs. Type
 %in "output_style" followed by one of the following options: 
@@ -38,12 +39,13 @@ function [f,varargout] = model_1(mesh, f0, u, CFL, scheme, t_vec, varargin)
 
 %% Code
 
-%compute dx and dt using mesh and CFL: 
-n_cells = length(mesh) -1;
-dx = (mesh(end) - mesh(1))/n_cells;
+%compute dx and dt using mesh and CFL:
+mesh = linspace(x_vec(1),x_vec(2),N_cells);
+dx = (x_vec(2) - x_vec(1))/(N_cells-1);
 dt = CFL*(dx)/u;
 
 %initialize f, t and counter
+f0 = f0fun(mesh);
 f_old = f0; %f_old corresponds to the solution from the previous timestep
 f_old_old = f0; %f_old_old corresponds to the solution from 2nd prior step
 t = t_vec(1);

@@ -8,6 +8,9 @@
 % which sets the value of the Ghost node at 0 i.e. f(0) = 0
 % On the right end of the domain, df/dx = 0 is enforced. 
 
+% A variable transform of the form fhat = u(x)f is applied which transforms
+% the equation to: dfhat/dt + u(x)dfhat/dx = 0. 
+
 %Instead of inputting a mesh, the function precomputes the mesh to enforce
 %CFL = 1.0 at each point. Therefore, input a desired value of dt.
 
