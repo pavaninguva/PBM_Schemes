@@ -9,7 +9,7 @@
 
 %simple plotting
 figure(1)
-plot(mesh,f)
+plot(linspace(0,1,101),f)
 ylabel("f")
 xlabel("x")
 legend(string(stride_vec))
@@ -17,12 +17,11 @@ legend(string(stride_vec))
 %% Model 2
 
 %Using model_2_conservative_uniform.m
-f0_2 = 50*exp(-((mesh-0.2).^2)/0.0005);
-[f2,stride_vec2] = model_2_conservative_uniform(mesh,f0_2, @(x)growth_rate(x), @(x)dudx(x), 1.0, "Lax Wendroff", [0,1],"output_style","final");
+[f2,stride_vec2] = model_2_conservative_uniform(101,@(x)50*exp(-((x-0.2).^2)/0.0005), @(x)growth_rate(x), @(x)dudx(x), 1.0, "Lax Wendroff", [0,1],[0,1],"output_style","final");
 
 %simple plotting
 figure(2)
-plot(mesh,f2)
+plot(linspace(0,1,101),f2)
 ylabel("f")
 xlabel("x")
 legend(string(stride_vec2))
@@ -48,6 +47,15 @@ ylabel("f")
 xlabel("x")
 legend(string(stride_vec4))
 
+%% Model 3
+[f5,stride_vec5] = model_3(201,@(x)50*exp(-((x-0.2).^2)/0.0005),0.5,@(x)(1+(0.1*x)+(0.1*x.^2)),@(x)(0.1 + 0.2.*x),1.0,"Upwind",[0,1],[0,1],"output_style","stride",20);
+
+%simple plotting
+figure(5)
+plot(linspace(0,1,201),f5)
+ylabel("f")
+xlabel("x")
+legend(string(stride_vec5))
 
 
 

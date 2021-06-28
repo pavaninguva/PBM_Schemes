@@ -10,12 +10,12 @@
 
 
 
-function [f,varargout] = model_2_conservative_uniform(mesh, f0, ufun, uprimefun, CFL, scheme, t_vec, varargin)
+function [f,varargout] = model_2_conservative_uniform(N_cells, f0fun, ufun, uprimefun, CFL, scheme, t_vec, x_vec,varargin)
 
 %% Description
 
 %INPUTS
-%mesh: input the mesh as an array
+%N_cells: The number of nodes in the mesh
 %f0: initial profile which should be the same size as mesh
 %u: input u(x) as a function handle
 %uprime: input u'(x) as a function handle. Used for the
@@ -23,6 +23,7 @@ function [f,varargout] = model_2_conservative_uniform(mesh, f0, ufun, uprimefun,
 %CFL: specify CFL, typically between 0-1
 %scheme: Three schemes are implemented: Upwind, Lax-Wendroff and Leapfrog
 %t_vec: Array containing the start and stop time. 
+%x_vec: Array containing the beginning and end of the domain.
 
 %varargin: This is to mainly deal with the different forms of outputs. Type
 %in "output_style" followed by one of the following options: 
@@ -41,8 +42,8 @@ function [f,varargout] = model_2_conservative_uniform(mesh, f0, ufun, uprimefun,
 %% Code
 
 %compute dx and dt using mesh and CFL: 
-n_cells = length(mesh) -1;
-dx = (mesh(end) - mesh(1))/n_cells;
+mesh = linspace(x_vec(1), x_vec(2), N_cells);
+dx = (x_vec(2) - x_vec(1))/(N_cells-1);
 u = ufun(mesh);
 uprime = uprimefun(mesh);
 dt = CFL*(dx)/(max(u));
@@ -51,6 +52,7 @@ dt = CFL*(dx)/(max(u));
 u_n1 = ufun(mesh(end)+dx);
 
 %Initialize, f, t and counter
+f0 = f0fun(mesh);
 f_old = f0;
 f_old_old = f0;
 t = t_vec(1);
