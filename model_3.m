@@ -63,7 +63,41 @@ while t < t_vec(2) + dt*1e-3
            f_new(i) = f_old(i) - CFL*(f_old(i) - f_old(i-1)) + dt*g(i);
        end
        
-       
+   elseif scheme == "Lax Wendroff"
+       %update first node
+       f_new(1) = f_old(1) - 0.5*CFL*f_old(2) ...
+                  +(0.5*CFL^2)*(f_old(2) - 2*f_old(1)) ...
+                  + dt*g(1) - (0.5*u*dt^2)*gprime(1);
+       %update the rest
+       for i = 2:length(mesh) -1
+          f_new(i) = f_old(i) - 0.5*CFL*(f_old(i+1) - f_old(i-1)) ...
+                     + (0.5*CFL^2)*(f_old(i+1) - 2*f_old(i) + f_old(i-1)) ...
+                     + dt*g(i) - (0.5*u*dt^2)*gprime(i);
+       end
+       %update last node
+       f_new(length(mesh)) = f_old(end) + (CFL^2)*(f_old(end-1) - f_old(end)) ...
+                             + dt*g(end) - (0.5*u*dt^2)*gprime(end);
+                         
+   elseif scheme == "Leapfrog"
+       %use upwind to compute the first time step
+       if counter == 1
+           %update first node
+           f_new(1) = f_old(1) - CFL*f_old(1) + dt*g(1);
+           %update the rest
+           for i = 2:length(mesh)
+               f_new(i) = f_old(i) - CFL*(f_old(i) - f_old(i-1)) + dt*g(i);
+           end
+       end
+       else
+           %update the first node
+           f_new(1) = f_old_old(1) - CFL*f_old(2) + 2*dt*g(1);
+           %update the rest
+           for i = 2:length(mesh) -1
+              f_new(i) = f_old_old(i) - CFL*(f_old(i+1) - f_old(i-1)) + 2*dt*g(i);
+           end
+           %update last node
+           f_new(length(mesh)) = f_old_old(i) + 2*dt*g(end);
+          
    end
        
    %update counters etc
@@ -92,10 +126,4 @@ end
 
 stride_vec(1) = t_vec(1);
 varargout{1} = stride_vec;
-
-
-
-
-
-
 end

@@ -48,7 +48,7 @@ xlabel("x")
 legend(string(stride_vec4))
 
 %% Model 3
-[f5,stride_vec5] = model_3(201,@(x)50*exp(-((x-0.2).^2)/0.0005),0.5,@(x)(1+(0.1*x)+(0.1*x.^2)),@(x)(0.1 + 0.2.*x),1.0,"Upwind",[0,1],[0,1],"output_style","stride",20);
+[f5,stride_vec5] = model_3(201,@(x)50*exp(-((x-0.2).^2)/0.0005),0.5,@(x)(1+(0.1*x)+(0.1*x.^2)),@(x)(0.1 + 0.2.*x),1.0,"Lax Wendroff",[0,1],[0,1],"output_style","stride",20);
 
 %simple plotting
 figure(5)
