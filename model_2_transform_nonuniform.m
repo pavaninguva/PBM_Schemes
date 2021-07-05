@@ -20,7 +20,7 @@ function [f,mesh,varargout] = model_2_transform_nonuniform(dt, f0fun, ufun, upri
 
 %INPUTS
 %dt: input the desired value of dt
-%f0fun: initial profile which should be the same size as mesh
+%f0fun: initial profile as a function handle
 %ufun: input u(x) as a function handle
 %uprimefun: input u'(x) as a function handle. Used for the
 %Lax-Wendroff scheme. 

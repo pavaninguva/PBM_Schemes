@@ -60,7 +60,7 @@ legend(string(stride_vec5))
 %% Model 4
 
 %using model_4_naive
-[f6,stride_vec6] = model_4_naive(501,@(x)50*exp(-((x-0.2).^2)/0.0005), @(x)x, @(x)1,@(x)(0), 0.5, [0,1],[0,2], "Upwind", "output_style","stride",20);
+[f6,stride_vec6] = model_4_naive(501,@(x)50*exp(-((x-0.2).^2)/0.0005), @(x)x, @(x)1,@(x)(0), 1.0, [0,1],[0,2], "Upwind", "output_style","stride",20);
 
 %simple plotting
 figure(6)
