@@ -19,7 +19,7 @@ The various input and output arguments are outlined in the comments within the f
 
 An example plot can be seen below: 
 
-<img src="./Figures/model1.png" alt="model1" style="zoom: 33%;" />
+<img src="./Figures/model1.png" alt="model1" style="zoom: 70%;" />
 
 ## Model 2
 
@@ -105,7 +105,7 @@ end
 
 A sample plot can be seen below:
 
-<img src="./Figures/model2.png" alt="model2" style="zoom: 20%;" />
+<img src="./Figures/model2.png" alt="model2" style="zoom: 70%;" />
 
 ## Model 3
 
