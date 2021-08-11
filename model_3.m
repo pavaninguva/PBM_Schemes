@@ -87,7 +87,6 @@ while t < t_vec(2) - dt*1e-3
            for i = 2:length(mesh)
                f_new(i) = f_old(i) - CFL*(f_old(i) - f_old(i-1)) + dt*k(i);
            end
-       end
        else
            %update the first node
            f_new(1) = f_old_old(1) - CFL*f_old(2) + 2*dt*k(1);
@@ -97,6 +96,7 @@ while t < t_vec(2) - dt*1e-3
            end
            %update last node
            f_new(length(mesh)) = f_old_old(i) + 2*dt*k(end);
+       end
           
    end
        

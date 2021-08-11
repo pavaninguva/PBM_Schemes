@@ -1,4 +1,4 @@
-% Script for employing naive finite differencing to solve PBMs
+% Script for employing exact finite differencing to solve PBMs
 %
 % This function is able to execute and run a variety of finite difference
 % schemes for solving problems of the form: 
@@ -11,14 +11,13 @@
 %The left boundary condition would thus require a numerical quadrature
 %scheme. 
 
-function [f,varargout] = model_4_exact(N_cells, f0fun, intkfun, bfun, CFL, t_vec, x_vec, varargin)
+function [f,varargout] = model_4_exact(N_cells, f0fun, intkfun, bfun, t_vec, x_vec, varargin)
 %% Description
 
 %The inputs and outputs are defined as follows: 
 %INPUTS
 %N_cells: Number of cells in the mesh
-%f0: Initial profile in the form of a function handle
-%u: this is the coefficient of the spatial term in the PDE. 
+%f0: Initial profile in the form of a function handle 
 %intkfun: Provide the nonhomogeneous function term after performing integration 
 %as a function handle.
 %bfun: Provide the expression for b(x) for the boundary condition as a
@@ -47,12 +46,50 @@ function [f,varargout] = model_4_exact(N_cells, f0fun, intkfun, bfun, CFL, t_vec
 %compute dx and dt using mesh and CFL:
 mesh = linspace(x_vec(1),x_vec(2),N_cells);
 dx = (x_vec(2) - x_vec(1))/(N_cells-1);
-dt = CFL*(dx);
+dt = dx;
 
 %initialize the functions and counter
 f0 = f0fun(mesh);
 intk = intkfun(mesh);
+f0_trans = f0.*exp(intk);
 
+b = bfun(mesh);
+f_trans_old = f0_trans;
+t = t_vec(1);
+counter = 1;
+
+while t < t_vec(2) - dt*1e-3
+   %update first node
+   f_trans_new(1) = trapz(mesh, (f_trans_old.*b)./(exp(intk)));
+   %upadate est
+   for i = 2:length(mesh)
+       f_trans_new(i) = f_trans_old(i-1);
+   end
+   
+   %update counters etc
+   counter = counter +1;
+   t = t + dt;
+   f_trans_old = f_trans_new;
+   
+   %outputs
+    if varargin{2} == "all"
+        f(counter,:) = f_trans_new./exp(intk);
+    elseif varargin{2} == "stride"
+        if mod((counter -1), varargin{3}) == 0
+           f((((counter-1)/varargin{3}) +1),:) = f_trans_new./exp(intk);
+           stride_vec((((counter-1)/varargin{3}) +1)) = t;
+        end
+    end
+end
+
+%output 
+if varargin{2} == "all" | varargin{2} == "stride"
+    f(1,:) = f0;
+else
+    f = f_trans_new./exp(intk);
+end
+stride_vec(1) = t_vec(1);
+varargout{1} = stride_vec;
 
 
 

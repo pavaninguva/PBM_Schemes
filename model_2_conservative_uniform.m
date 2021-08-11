@@ -59,7 +59,7 @@ t = t_vec(1);
 counter = 1;
 
 %start simulation
-while t < t_vec(2) + dt*1e-3
+while t < t_vec(2) - dt*1e-3
    if scheme == "Upwind"
        %update first node
        f_new(1) = f_old(1) - (dt/dx)*(u(1)*f_old(1));
@@ -82,6 +82,9 @@ while t < t_vec(2) + dt*1e-3
        f_new(length(mesh)) = f_old(end) ...
                              + (0.5*(dt^2)*uprime(end)- dt)*(u_n1 - u(end-1))*f_old(end-1)/(2*dx) ...
                              +(0.5*((dt/dx)^2)*u(end))*(u_n1*f_old(end-1) - 2*u(end)*f_old(end) + u(end-1)*f_old(end-1));
+                         
+%        f_new(length(mesh)) = f_old(end) + ((dt/dx)^(2))*(u(end-1)*f_old(end-1) - u(end)*f_old(end));
+                             
    
    elseif scheme == "Leapfrog"
        %Use upwind to compute first timestep
@@ -100,7 +103,7 @@ while t < t_vec(2) + dt*1e-3
               f_new(i) = f_old_old(i) - (dt/dx)*(u(i+1)*f_old(i+1) - u(i-1)*f_old(i-1)); 
            end
            %update last node
-           f_new(length(mesh)) = f_old_old(end) - (dt/dx)*(u_n1 - u(end-1)*f_old(end-1)); 
+           f_new(length(mesh)) = f_old_old(end)- (dt/dx)*(u_n1 - u(end-1)*f_old(end-1)); 
        end
    end
    
@@ -120,7 +123,6 @@ while t < t_vec(2) + dt*1e-3
        end
    end
 end
-
 
 %output 
 if varargin{2} == "all" | varargin{2} == "stride"

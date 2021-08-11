@@ -70,7 +70,7 @@ legend(string(stride_vec6))
 %% Model 4
 
 %using model_4_naive.m
-[f7,stride_vec7] = model_4_naive(501,@(x)50*exp(-((x-0.2).^2)/0.0005), @(x)x, @(x)1,@(x)(0), 1.0, [0,1],[0,2], "Upwind", "output_style","stride",40);
+[f7,stride_vec7] = model_4_naive(501,@(x)50*exp(-((x-0.2).^2)/0.0005), @(x)x, @(x)1,@(x)(0), 1.0, [0,1],[0,2], "Upwind", "output_style","stride",20);
 
 %simple plotting
 figure(7)
@@ -80,14 +80,7 @@ xlabel("x")
 legend(string(stride_vec7))
 
 %using model_4_exact.m
-[f8,stride_vec8] = model_4_exact(101,@(x)50*exp(-((x-0.2).^2)/0.0005),@(x)intk(x), @(x)(0), [0,1], [0,2],"output_style","stride",20);
 
-%simple plotting
-figure(8)
-plot(linspace(0,1,101),f8)
-ylabel("f")
-xlabel("x")
-legend(string(stride_vec8))
 
 
 
@@ -107,7 +100,4 @@ function f = f0_transfun(x)
 f = (0.434 + 0.2604*x).*(50*exp(-((x-0.2).^2)/0.0005));
 end
 
-%function for model 4
-function f = intk(x)
-f = 0.5*(x.^2);
-end
+
