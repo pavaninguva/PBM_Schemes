@@ -362,15 +362,17 @@ def mesh_constructor(L_vec,dt,g1fun,g2fun):
     yend_vals = yend_vals[:-1]
 
     #Compute mesh for 1st subproblem
-    x_1_vals = [xend_vals[::-1]]
-    y_1_vals = [[Ly]*len(xend_vals[::-1])]
+    # x_1_vals = [xend_vals[::-1]]
+    # y_1_vals = [[Ly]*len(xend_vals[::-1])]
+    x_1_vals = []
+    y_1_vals = []
     for i in range(len(yend_vals)):
         y_val = yend_vals[i]
         #Create dummy var
         x = [Lx]
         c_x = 0
         while x[-1] > 0.0:
-            x_new = x[c_x-1] - dt*g1fun(x[c_x-1],y_val)
+            x_new = x[c_x] - dt*g1fun(x[c_x],y_val)
             x.append(x_new)
             c_x = c_x +1 
         #Append to x_vals
@@ -378,20 +380,23 @@ def mesh_constructor(L_vec,dt,g1fun,g2fun):
         x_1_vals.append(x[::-1])
         #Create y vals list
         y = [y_val]*len(x)
+        # print(y)
         y_1_vals.append(y)
     #Generate X_1 and Y_1  array
     X_1 = ak.Array(x_1_vals)
     Y_1 = ak.Array(y_1_vals)
 
     #Compute mesh for 2nd subproblem
-    y_2_vals = [yend_vals[::-1]]
-    x_2_vals = [[Lx]*len(yend_vals[::-1])]
+    # y_2_vals = [yend_vals[::-1]]
+    # x_2_vals = [[Lx]*len(yend_vals[::-1])]
+    y_2_vals = []
+    x_2_vals = []
     for i in range(len(xend_vals)):
         x_val = xend_vals[i]
         y_2 = [Ly]
         c_y = 0
         while y_2[-1] > 0.0:
-            y_new = y_2[c_y-1] - dt*g2fun(x_val,y_2[c_y-1])
+            y_new = y_2[c_y] - dt*g2fun(x_val,y_2[c_y])
             y_2.append(y_new)
             c_y = c_y +1
         #Append to y_vals
@@ -411,16 +416,104 @@ def model3_split_transform_cfl(L_vec, t_vec, dt, g1fun, g2fun, f0_fun):
     #Generate mesh
     X_1, Y_1, X_2, Y_2 = mesh_constructor(L_vec,dt,g1fun,g2fun)
 
+    mesh1_shape = ak.num(X_1)
+    mesh2_shape = ak.num(X_2)
+
+    #Compute interpolation things outside loop
+    XY_1 = list(zip(ak.flatten(X_1,axis=None),ak.flatten(Y_1,axis=None)))
+    XY_2 = list(zip(ak.flatten(X_2,axis=None),ak.flatten(Y_2,axis=None)))
+
+    tri1 = Delaunay(XY_1)
+    tri2 = Delaunay(XY_2)
+
     #Generate ICs and Transformation
-    f0 = f0_fun(X_1,X_2)
-    fhat0 = f0*g1fun(X_1,X_2)
+    f0 = f0_fun(X_1,Y_1)
+    fhat0 = f0*g1fun(X_1,Y_1)
 
     #Timestepping
     n_steps = round((t_vec[1]-t_vec[0])/dt)
     t = t_vec[0]
 
     for i in range(n_steps):
-        
+        if t == t_vec[0]:
+            #Initialize arrays
+            fhat1_old = fhat0
+            fhat1_new_list = []
+            #Solve first subproblem dfhat1/dt + G1*dfhat1/a1 = 0
+            #iterate through the rows: 
+            for row in range(ak.num(fhat1_old,axis=0)):
+                row_vals = []
+                for col in range(len(fhat1_old[row])):
+                    #Enforce BC
+                    if col == 0:
+                        row_vals.append(0.0)
+                    else:
+                        if np.isnan(fhat1_old[row][col-1]) == False:
+                            row_vals.append(fhat1_old[row][col-1])
+                        else:
+                            row_vals.append(0.0)
+                fhat1_new_list.append(row_vals)
+            fhat1_new = ak.Array(fhat1_new_list)
+        else:
+            #Interpolate f_new back to mesh1
+            interp_2 = LinearNDInterpolator(tri2,ak.flatten(f_new,axis=None))
+            f1_old_ = interp_2(XY_1)
+            #Reshape
+            f1_old = ak.unflatten(f1_old_,mesh1_shape)
+            fhat1_old = f1_old*g1fun(X_1,Y_1)
+            fhat1_new_list = []
+            for row_1 in range(ak.num(fhat1_old,axis=0)):
+                row_vals = []
+                for col_1 in range(len(fhat1_old[row_1])):
+                    #Enforce BC
+                    if col_1 == 0:
+                        row_vals.append(0.0)
+                    else:
+                        if np.isnan(fhat1_old[row_1][col_1-1]) == False:
+                            row_vals.append(fhat1_old[row_1][col_1-1])
+                        else: 
+                            row_vals.append(0.0)
+                fhat1_new_list.append(row_vals)
+            fhat1_new = ak.Array(fhat1_new_list)
+
+        #Recompute f from fhat1_new
+        f1_new = fhat1_new/g1fun(X_1,Y_1)
+        #Interpolate to mesh2
+        interp_1 = LinearNDInterpolator(tri1,ak.flatten(f1_new,axis=None))
+        f2_old_ = interp_1(XY_2)
+        #Reshape to mesh2 shape
+        f2_old = ak.unflatten(f2_old_,mesh2_shape)
+        #Transform
+        fhat2_old = f2_old*g2fun(X_2,Y_2)
+        fhat2_new_list = []
+        #Solve second subproblem
+        for row_2 in range(ak.num(fhat2_old,axis=0)):
+            row2_vals = []
+            for col_2 in range(len(fhat2_old[row_2])):
+                #Enforce BC
+                if col_2 == 0:
+                    row2_vals.append(0.0)
+                else:
+                    if np.isnan(fhat2_old[row_2][col_2-1]) == False:
+                        row2_vals.append(fhat2_old[row_2][col_2-1])
+                    else: 
+                        row2_vals.append(0.0)
+            fhat2_new_list.append(row2_vals)
+        fhat2_new = ak.Array(fhat2_new_list)
+
+        #Recompute f from fhat2_new
+        f_new = fhat2_new/g2fun(X_2,Y_2)
+
+        #Update time
+        t = t + dt
+        print("Current Simulation Time is %s"%t)
+
+
+
+
+
+
+    return f_new, X_2, Y_2
 
 
 

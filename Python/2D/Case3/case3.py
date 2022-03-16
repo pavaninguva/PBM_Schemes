@@ -28,33 +28,28 @@ def g2fun(x,y):
 Perform Simulations
 """
 
-val_upwind ,x,y= model3_conservative_upwind([51,51],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
+# val_upwind ,x,y= model3_conservative_upwind([51,51],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
 
 # X,Y, val_exact, foo = model3_split_transform([201,201],[2.0,2.0],g1fun,g2fun,[0.0,0.01],0.01,f0_fun)
 
-val_split, X, Y = model3_split_conservative([51,51],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
+# val_split, X, Y = model3_split_conservative([51,51],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
 
-val_trans_split, X2,Y2 = model3_split_transform([51,51],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
+# val_trans_split, X2,Y2 = model3_split_transform([51,51],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
 
-X_1, Y_1, X_2, Y_2 = mesh_constructor([2.0,2.0],0.05,g1fun,g2fun)
-
-f0_vals = f0_fun(X_1,Y_1)
-
-# print(X_1,Y_1)
-
+val_cfl, X_CFL, Y_CFL = model3_split_transform_cfl([2.0,2.0],[0.0,1.0],0.025,g1fun,g2fun,f0_fun)
 
 """
 Plotting
 """
 
 #Upwind
-fig1 = plt.figure(num=1)
-plt.pcolormesh(x,y,val_upwind[:,:,-1], cmap="jet",shading='gouraud')
-plt.colorbar(label=r"$f$")
-plt.xlabel(r"$a_{1}$")
-plt.ylabel(r"$a_{2}$")
-plt.clim(0,50)
-plt.tight_layout()
+# fig1 = plt.figure(num=1)
+# plt.pcolormesh(x,y,val_upwind[:,:,-1], cmap="jet",shading='gouraud')
+# plt.colorbar(label=r"$f$")
+# plt.xlabel(r"$a_{1}$")
+# plt.ylabel(r"$a_{2}$")
+# plt.clim(0,50)
+# plt.tight_layout()
 # plt.savefig("case3_upwind.png",dpi=300)
 
 # #Plot mesh
@@ -74,34 +69,28 @@ plt.tight_layout()
 # plt.savefig("case3_exact.png",dpi=300)
 
 #Conservative Split
-fig4 = plt.figure(num=4)
-plt.pcolormesh(X,Y,val_split[:,:,-1], cmap="jet",shading='gouraud')
-plt.colorbar(label=r"$f$")
-plt.xlabel(r"$a_{1}$")
-plt.ylabel(r"$a_{2}$")
-plt.clim(0,50)
-plt.tight_layout()
+# fig4 = plt.figure(num=4)
+# plt.pcolormesh(X,Y,val_split[:,:,-1], cmap="jet",shading='gouraud')
+# plt.colorbar(label=r"$f$")
+# plt.xlabel(r"$a_{1}$")
+# plt.ylabel(r"$a_{2}$")
+# plt.clim(0,50)
+# plt.tight_layout()
 # plt.savefig("case3_split_naive.png",dpi=300)
 
 #Transformed Split
-fig5 = plt.figure(num=5)
-plt.pcolormesh(X2,Y2,val_trans_split[:,:,-1], cmap="jet",shading='gouraud')
-plt.colorbar(label=r"$f$")
-plt.xlabel(r"$a_{1}$")
-plt.ylabel(r"$a_{2}$")
-plt.clim(0,50)
-plt.tight_layout()
+# fig5 = plt.figure(num=5)
+# plt.pcolormesh(X2,Y2,val_trans_split[:,:,-1], cmap="jet",shading='gouraud')
+# plt.colorbar(label=r"$f$")
+# plt.xlabel(r"$a_{1}$")
+# plt.ylabel(r"$a_{2}$")
+# plt.clim(0,50)
+# plt.tight_layout()
+
 
 #Plot CFL=1 Mesh
 fig6 = plt.figure(num=6)
-plt.plot(ak.flatten(X_1,axis=None),ak.flatten(Y_1,axis=None),".k")
-# plt.axhline(y=0)
-plt.xlabel(r"$a_{1}$")
-plt.ylabel(r"$a_{2}$")
-
-#Plot IC on CFL=1 Mesh
-fig7 = plt.figure(num=7)
-plt.tripcolor(ak.flatten(X_1,axis=None),ak.flatten(Y_1,axis=None),ak.flatten(f0_vals,axis=None),cmap="jet", shading="gouraud")
+plt.tripcolor(ak.flatten(X_CFL,axis=None),ak.flatten(Y_CFL,axis=None),ak.flatten(val_cfl,axis=None),cmap="jet", shading="gouraud")
 plt.colorbar(label=r"$f$")
 plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")

@@ -59,6 +59,8 @@ vanleer_rmse = np.zeros(len(n_cell_vals))
 vanleer_mae = np.zeros(len(n_cell_vals))
 exact_rmse = np.zeros(len(n_cell_vals))
 exact_mae = np.zeros(len(n_cell_vals))
+exact_interp_rmse = np.zeros(len(n_cell_vals))
+exact_interp_mae = np.zeros(len(n_cell_vals))
 
 """
 Run simulations to compute error
@@ -76,6 +78,8 @@ for i in range(len(n_cell_vals)):
 
     val_exact, x2,y2 = model1_exact(n_cell,2.0,2.0,[1.0,1.0],[0.0,1.0],f0_fun)
 
+    val_exact_interp, X3,Y3 = model1_exact_interpolation(n_cell,2.0,2.0,[1.0,1.0],[0.0,1.0],f0_fun)
+
     #Compute Analytical solution
     val_ana = f_analytical(x,y,[1.0,1.0],1.0)
 
@@ -86,6 +90,9 @@ for i in range(len(n_cell_vals)):
     exact_rmse[i] = np.sqrt(np.mean((val_ana-val_exact[:,:,-1])**2))
     exact_mae[i] = np.amax(np.abs(val_exact[:,:,-1]-val_ana))
 
+    exact_interp_rmse[i] = np.sqrt(np.mean((val_ana-val_exact_interp[:,:,-1])**2))
+    exact_interp_mae[i] = np.amax(np.abs(val_exact_interp[:,:,-1]-val_ana))
+
     vanleer_rmse[i] = np.sqrt(np.mean((val_ana_fipy-val_vanleer)**2))
     vanleer_mae[i] = np.amax(np.abs(val_vanleer-val_ana_fipy))
 
@@ -94,20 +101,22 @@ for i in range(len(n_cell_vals)):
 Plotting
 """
 
-fig1 = plt.figure(num=1,figsize=(4,3))
-plt.loglog(np.square(n_cell_vals),upwind_rmse,label="Upwind")
-plt.loglog(np.square(n_cell_vals),vanleer_rmse,label="Van Leer")
-plt.loglog(np.square(n_cell_vals),exact_rmse,label="Exact")
+fig1 = plt.figure(num=1)
+plt.loglog(np.square(n_cell_vals),upwind_rmse,"-ko",label="Upwind",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),vanleer_rmse,"-bo",label="Van Leer",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),exact_rmse,"-ro",label="Exact",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),exact_interp_rmse,"-rx",label="Exact, Interpolation",markerfacecolor="none")
 plt.xlabel(r"$N_{Cells}$")
 plt.ylabel(r"RMSE")
 plt.legend()
 plt.tight_layout()
 plt.savefig("case1_rmse.png",dpi=300)
 
-fig2 = plt.figure(num=2,figsize=(4,3))
-plt.loglog(np.square(n_cell_vals),upwind_mae,label="Upwind")
-plt.loglog(np.square(n_cell_vals),vanleer_mae,label="Van Leer")
-plt.loglog(np.square(n_cell_vals),exact_mae,label="Exact")
+fig2 = plt.figure(num=2)
+plt.loglog(np.square(n_cell_vals),upwind_mae,"-ko",label="Upwind",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),vanleer_mae,"-bo",label="Van Leer",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),exact_mae,"-ro",label="Exact",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),exact_interp_mae,"-rx",label="Exact, Interpolation",markerfacecolor="none")
 plt.xlabel(r"$N_{Cells}$")
 plt.ylabel(r"MAE")
 plt.legend()

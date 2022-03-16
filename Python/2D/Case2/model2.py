@@ -1,8 +1,7 @@
-from re import L
 import numpy as np
 
 #For exact scheme
-from scipy.integrate import quad,fixed_quad
+from scipy.integrate import quad
 from functools import partial
 
 """
@@ -61,7 +60,7 @@ def model2_conservative_upwind(n_vec, L_vec, g1fun, g2fun, t_vec,f0fun):
         f_old = f_array[:,:,i]
         #Iterate through each value
         for idx, f in np.ndenumerate(f_vals):
-             #Top BC (a2 = Ly): d(Gf)/da2 = 0
+            #Top BC (a2 = Ly): d(Gf)/da2 = 0
             if idx[0] == 0:
                 f_vals[idx] = f_old[idx] - (dt/dx)*((g1_vals[idx]*f_old[idx] - g1_vals[idx[0],idx[1]-1]*f_old[idx[0],idx[1]-1]))
             #Bottom BC (a2 = 0): f(ghost node) = 0
@@ -231,7 +230,7 @@ def model2_conservative_nonuniform(Lx,Ly,dt,g1fun,g2fun,gamma,t_vec,f0fun):
         f_array[:,:,i+1] = f_vals
         t = t + dt
         # print("Current Simulation Time is %s"%t)
-    print(nx*ny)
+    print(nx,ny)
 
     return f_array, X,Y
 
@@ -284,7 +283,7 @@ def model2_trans_nonuniform(Lx,Ly,dt,g1fun,g2fun,gamma,t_vec,f0fun):
         f_array[:,:,i+1] = fhat_vals/(g1_vals*g2_vals)
         t = t + dt
         # print("Current Simulation Time is %s"%t)
-    print(nx*ny)
+    print(nx,ny)
 
     return f_array, X,Y
 

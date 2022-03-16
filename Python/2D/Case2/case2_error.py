@@ -111,7 +111,7 @@ def mode2_vanleer(nx,ny,Lx,Ly,g1fun,g2fun,t_vec):
 Run Simulations
 """
 
-n_cell_vals = np.array([11,21,41,51,81,101,161,201])
+n_cell_vals = np.array([11,21,41,51,81,101,161,201,251])
 
 vanleer_rmse = np.zeros(len(n_cell_vals))
 vanleer_mae = np.zeros(len(n_cell_vals))
@@ -165,7 +165,7 @@ for i in range(len(n_cell_vals)):
     exact_ana_mae[i] = np.amax(np.abs(f_ana_exact_ana-val_exact_ana))
 
 #Run nonuniform simulation
-dt_vals = np.array([0.2,0.1,0.05,0.04,0.025,0.02])
+dt_vals = np.array([0.2,0.1,0.05,0.04,0.025,0.02,0.01])
 n_cells_nonuni = np.zeros(len(dt_vals))
 
 con_nonuni_rmse = np.zeros(len(dt_vals))
@@ -207,13 +207,13 @@ plt.loglog(np.square(n_cell_vals),vanleer_rmse,"-bo",label="Con-Uniform,Van Leer
 plt.loglog(np.square(n_cell_vals),trans_upwind_rmse,"--ks",label="Trans-Uniform,Upwind",markerfacecolor="none")
 plt.loglog(n_cells_nonuni,con_nonuni_rmse,":k^",label="Con-Nonuniform,Upwind",markerfacecolor="none")
 plt.loglog(n_cells_nonuni,trans_nonuni_rmse,"-.kd",label="Trans-Nonuniform,Upwind",markerfacecolor="none")
-plt.loglog(np.square(n_cell_vals),exact_rmse,"-ro",label="Exact",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),exact_rmse,"-ro",label="Exact,Numerical",markerfacecolor="none")
 plt.loglog(np.square(n_cell_vals),exact_ana_rmse,"-rx",label="Exact,Analytical",markerfacecolor="none")
 plt.xlabel(r"$N_{Cells}$")
 plt.ylabel(r"RMSE")
-plt.legend()
+plt.legend(fontsize="medium",loc="upper right",bbox_to_anchor=(0.42,0.84))
 plt.tight_layout()
-# plt.savefig("case1_rmse.png",dpi=300)
+plt.savefig("case2_rmse.png",dpi=300)
 
 fig2 = plt.figure(num=2)
 plt.loglog(np.square(n_cell_vals),con_upwind_mae,"-ko",label="Con-Uniform,Upwind",markerfacecolor="none")
@@ -221,12 +221,13 @@ plt.loglog(np.square(n_cell_vals),vanleer_mae,"-bo",label="Con-Uniform,Van Leer"
 plt.loglog(np.square(n_cell_vals),trans_upwind_mae,"--ks",label="Trans-Uniform,Upwind",markerfacecolor="none")
 plt.loglog(n_cells_nonuni,con_nonuni_mae,":k^",label="Con-Nonuniform,Upwind",markerfacecolor="none")
 plt.loglog(n_cells_nonuni,trans_nonuni_mae,"-.kd",label="Trans-Nonuniform,Upwind",markerfacecolor="none")
-plt.loglog(np.square(n_cell_vals),exact_mae,"-ro",label="Exact",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),exact_mae,"-ro",label="Exact,Numerical",markerfacecolor="none")
 plt.loglog(np.square(n_cell_vals),exact_ana_mae,"-rx",label="Exact,Analytical",markerfacecolor="none")
 plt.xlabel(r"$N_{Cells}$")
 plt.ylabel(r"MAE")
-plt.legend()
+plt.legend(fontsize="medium",loc="upper right",bbox_to_anchor=(0.42,0.83))
 plt.tight_layout()
+plt.savefig("case2_mae.png",dpi=300)
 
 
 plt.show()

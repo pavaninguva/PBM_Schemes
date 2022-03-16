@@ -22,6 +22,8 @@ val2, x2,y2 = model1_exact(101,2.0,2.0,[1.0,1.0],[0.0,1.0],f0_fun)
 
 val_ana = f_analytical(x,y,[1.0,1.0],1.0)
 
+val3, X3,Y3 = model1_exact_interpolation(101,2.0,2.0,[1.0,1.0],[0.0,1.0],f0_fun)
+
 
 
 """
@@ -67,6 +69,15 @@ plt.ylabel(r"$a_{2}$")
 plt.clim(0,50)
 plt.tight_layout()
 # plt.savefig("case1_exact.png",dpi=300)
+
+#Plot exact method with interpolation
+fig5 = plt.figure(num=5)
+plt.pcolormesh(X3,Y3,val3[:,:,-1], cmap="jet",shading='gouraud')
+plt.colorbar(label=r"$f$")
+plt.xlabel(r"$a_{1}$")
+plt.ylabel(r"$a_{2}$")
+plt.clim(0,50)
+plt.tight_layout()
 
 
 
