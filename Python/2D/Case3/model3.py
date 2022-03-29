@@ -80,148 +80,6 @@ def model3_conservative_upwind(n_vec, L_vec, g1fun, g2fun, t_vec,f0fun):
     return f_array, X,Y
 
 
-def model3_split_transform(n_vec,L_vec,  g1fun, g2fun, t_vec, dt, f0fun):
-
-    #Extract mesh parameters
-    nx, ny = n_vec
-    Lx, Ly = L_vec
-
-    def recip(x,y,fun):
-        f = 1/(fun(x,y))
-        return f
-
-    #Define transformation functions
-    def x_transfun(x,y):
-        result = np.array(list(map(partial(quad,(lambda x:recip(x,y,g1fun)),0.0),x)))[:,0]
-        return result
-
-    def y_transfun(x,y):
-        result = np.array(list(map(partial(quad,(lambda y:recip(x,y,g2fun)),0.0),y)))[:,0]
-        return result
-
-    #Construct mesh for 1st subproblem
-    y_vals_1 = np.linspace(0.0,Ly,ny)
-    Y_1 = np.zeros((ny,nx))
-    for i in range(len(y_vals_1)):
-        Y_1[i,:] = y_vals_1[i]
-
-    #Compute ends of a1 using x_transfun and get XTilde_1
-    XTilde_1 = np.zeros((ny,nx))
-    for i in range(len(y_vals_1)):
-        xtilde_end_1 = x_transfun([Lx],y_vals_1[i])
-        XTilde_1[i,:]  = np.linspace(0.0,xtilde_end_1[0],nx)
-
-    #Use Interpolation to obtain X_1
-    X_1 = np.zeros((ny,nx))
-    for i in range(len(y_vals_1)):
-        XTilde_Row_1 = XTilde_1[i,:]
-        y_val_1 = y_vals_1[i]
-        #Generate interpolatable
-        x_interp_1 = np.linspace(0.0,Lx,5001)
-        xTilde_1_interp = x_transfun(x_interp_1,y_val_1)
-        #Interpolate
-        X_1[i,:] = np.interp(XTilde_Row_1,xTilde_1_interp,x_interp_1)
-
-
-    #Construct mesh for 2nd subproblem
-    x_vals_2 = np.linspace(0.0,Lx,nx)
-    X_2 = np.zeros((ny,nx))
-    for i in range(len(x_vals_2)):
-        X_2[:,i] = x_vals_2[i]
-
-    #Compute ends of a2 using y_transfun and get YTilde_2
-    YTilde_2 = np.zeros((ny,nx))
-    for i in range(len(x_vals_2)):
-        ytilde_end_2 = y_transfun(x_vals_2[i],[Ly])
-        YTilde_2[:,i]  = np.linspace(0.0,ytilde_end_2[0],ny)
-
-    #Use Interpolation to obtain Y_2
-    Y_2 = np.zeros((ny,nx))
-    for i in range(len(x_vals_2)):
-        YTilde_Col_2 = YTilde_2[:,i]
-        x_val_2 = x_vals_2[i]
-        #Generate interpolatable
-        y_interp_2 = np.linspace(0.0,Ly,5001)
-        yTilde_2_interp = y_transfun(x_val_2, y_interp_2)
-        #Interpolate
-        Y_2[:,i] = np.interp(YTilde_Col_2,yTilde_2_interp,y_interp_2)
-
-    print("Mesh Generation is Complete")
-
-    #Solve
-    
-    #Compute ICs on X_1, Y_1
-    f0 = f0fun(X_1,Y_1)
-
-    #Compute triangulation to speed up interpolation
-    # points_1 = np.dstack((X_1,Y_1)).reshape(-1,2)
-    # points_2 = np.dstack((X_2,Y_2)).reshape(-1,2)
-
-    points_1 = np.dstack((XTilde_1,Y_1)).reshape(-1,2)
-    points_2 = np.dstack((X_2,YTilde_2)).reshape(-1,2)
-
-    tri_1 = Delaunay(points_1)
-    tri_2 = Delaunay(points_2)
-
-    print("Delaunay Computation is Complete")
-
-
-    t = t_vec[0]
-    while t < t_vec[1] -1e-8:
-        if t == t_vec[0]:
-            fhat_1_old = f0*g1fun(X_1,Y_1)
-            fhat_1_new = np.zeros((ny,nx))
-            fhat_1_interp = LinearNDInterpolator(tri_1,fhat_1_old.copy().flatten())
-            # fhat_1_interp = CloughTocher2DInterpolator(tri_1,fhat_1_old.copy().flatten())
-            for idx, f in np.ndenumerate(fhat_1_new):
-                if XTilde_1[idx] < t + dt:
-                    fhat_1_new[idx] = 0.0
-                else:
-                    # x_shift = np.interp(XTilde_1[idx] -dt ,xTilde_1_interp,x_interp_1)
-                    fhat_1_new[idx] = fhat_1_interp(XTilde_1[idx] -dt,Y_1[idx])
-        else:
-            #Interpolate f_old back to mesh_1
-            f_1_old_interp = CloughTocher2DInterpolator(tri_2,f_old.copy().flatten())
-            f_old_mesh1 = f_1_old_interp(XTilde_1,Y_1)
-            fhat_1_old = f_old_mesh1*g1fun(X_1,Y_1)
-            fhat_1_interp = LinearNDInterpolator(tri_1,fhat_1_old.copy().flatten())
-            # fhat_1_interp = CloughTocher2DInterpolator(tri_1,fhat_1_old.copy().flatten())
-            for idx, f in np.ndenumerate(fhat_1_new):
-                if XTilde_1[idx] < t + dt:
-                    fhat_1_new[idx] = 0.0
-                else:
-                    # x_shift = np.interp(XTilde_1[idx] -(t+dt),xTilde_1_interp,x_interp_1)
-                    fhat_1_new[idx] = fhat_1_interp(XTilde_1[idx]-dt,Y_1[idx]) 
-
-        #Retransform to obtain f on mesh_1
-        f_2_old_mesh1 = fhat_1_new/g1fun(X_1,Y_1)
-
-        #Interpolate to mesh_2
-        f_2_old_interp = CloughTocher2DInterpolator(tri_1,f_2_old_mesh1.copy().flatten())
-        f_2_old_mesh2 = f_2_old_interp(X_2,YTilde_2)
-
-
-        #Solve second subproblem
-        fhat_2_old = f_2_old_mesh2*g2fun(X_2,Y_2)
-        fhat_2_new = np.zeros((ny,nx))
-        fhat_2_interp = LinearNDInterpolator(tri_2,fhat_2_old.copy().flatten())
-        # fhat_2_interp = CloughTocher2DInterpolator(tri_2,fhat_2_old.copy().flatten())
-        for idx_,f in np.ndenumerate(fhat_2_old):
-            if YTilde_2[idx_] < t + dt:
-                fhat_2_new[idx_] = 0.0
-            else:
-                # y_shift = np.interp(YTilde_2[idx_]-dt,yTilde_2_interp,y_interp_2)
-                fhat_2_new[idx_] = fhat_2_interp(X_2[idx_],YTilde_2[idx]-dt)
-
-        f_old = fhat_2_new/g2fun(X_2,Y_2)
-        t = t + dt
-        print("Current Simulation Time is %s"%t)
-        
-
-
-    return X_2, Y_2, f_old, f_2_old_mesh1
-
-
 def model3_split_conservative(n_vec,L_vec,  g1fun, g2fun, t_vec, f0fun):
 
     #Extract mesh parameters and construct mesh
@@ -508,12 +366,232 @@ def model3_split_transform_cfl(L_vec, t_vec, dt, g1fun, g2fun, f0_fun):
         t = t + dt
         print("Current Simulation Time is %s"%t)
 
-
-
-
-
-
     return f_new, X_2, Y_2
+
+
+def model3_scratch(n_vec,L_vec,g1fun,g2fun,t_vec,dt,f0fun):
+    #Generate mesh
+    nx, ny = n_vec
+    Lx, Ly = L_vec
+
+    x_vals = np.linspace(start=0,stop=Lx,num=nx)
+    y_vals = np.linspace(start=0,stop=Ly,num=ny)
+    X,Y = np.meshgrid(x_vals,y_vals)
+
+    #Compute Delauny for interpolation
+    points = np.dstack((X,Y)).reshape(-1,2)
+    tri = Delaunay(points)
+
+    #Compute initial conditions
+    f_old = f0fun(X,Y)
+
+    #Compute g1 and g2
+    g1_vals = g1fun(X,Y)
+    g2_vals = g2fun(X,Y)
+
+    #Set up time stepping
+    n_steps = round((t_vec[1] - t_vec[0])/dt)
+    print(n_steps)
+    t = t_vec[0]
+    for i in range(n_steps):
+        #Solve first sub-problem
+        #transform to fhat_1
+        fhat_old_1 = f_old*g1_vals
+        #Initalize new fhat_1
+        fhat_new_1 = np.zeros((ny,nx))
+        #Create interpolatable
+        interp1 = LinearNDInterpolator(tri, fhat_old_1.copy().flatten())
+        #Compute solution for each point
+        for idx, f in np.ndenumerate(fhat_new_1):
+            x_shift = np.exp(-dt/2)*(0.5+X[idx]+Y[idx]) - 0.5 - Y[idx]
+            if x_shift < 0.0:
+                fhat_new_1[idx] = 0.0
+            else:
+                coord_1 = np.array([x_shift, Y[idx]])
+                val = interp1(coord_1)
+                if np.isnan(val) == True:
+                    fhat_new_1[idx] = 0.0
+                else:
+                    fhat_new_1[idx] = val
+
+        #Recompute f_new_1
+        f_new_1 = fhat_new_1/g1_vals
+
+        #Solve 2nd sub-problem
+        fhat_old_2 = f_new_1*g2_vals
+        #Initialize new fhat_new_2
+        fhat_new_2 = np.zeros((ny,nx))
+        #Create interpolatable
+        interp2 = LinearNDInterpolator(tri, fhat_old_2.copy().flatten())
+        #Solve at each point
+        for idx_, f_ in np.ndenumerate(fhat_new_2):
+            y_shift = np.exp(-dt/4)*(2+X[idx_]+Y[idx_]) - 2 - X[idx_]
+            if y_shift < 0.0:
+                fhat_new_2[idx_] = 0.0
+            else:
+                coord_2 = np.array([X[idx_], y_shift])
+                val2 = interp2(coord_2)
+                if np.isnan(val2) == True:
+                    fhat_new_2[idx_] = 0.0
+                else:
+                    fhat_new_2[idx_] = val2
+
+        #Recompute and clobber f_old
+        f_old = fhat_new_2/g2_vals
+        #Update time
+        t = t + dt
+        print("Current Simulation Time is %s"%t)
+
+    return f_old, X, Y
+
+
+def model3_split_exact(n_vec,L_vec,g1fun,g2fun,t_vec,dt,f0fun):
+    #Generate mesh
+    nx, ny = n_vec
+    Lx, Ly = L_vec
+
+    def recip(x,y,fun):
+        f = 1/(fun(x,y))
+        return f
+
+    #Define transformation functions
+    def x_transfun(x,y):
+        result = np.array(list(map(partial(quad,(lambda x:recip(x,y,g1fun)),0.0),x)))[:,0]
+        return result
+
+    def y_transfun(x,y):
+        result = np.array(list(map(partial(quad,(lambda y:recip(x,y,g2fun)),0.0),y)))[:,0]
+        return result
+
+    #Construct mesh for 1st subproblem
+    y_vals_1 = np.linspace(0.0,Ly,ny)
+    Y_1 = np.zeros((ny,nx))
+    for i in range(len(y_vals_1)):
+        Y_1[i,:] = y_vals_1[i]
+
+    #Compute ends of a1 using x_transfun and get XTilde_1
+    XTilde_1 = np.zeros((ny,nx))
+    for i in range(len(y_vals_1)):
+        xtilde_end_1 = x_transfun([Lx],y_vals_1[i])
+        XTilde_1[i,:]  = np.linspace(0.0,xtilde_end_1[0],nx)
+
+    #Use Interpolation to obtain X_1
+    X_1 = np.zeros((ny,nx))
+    for i in range(len(y_vals_1)):
+        XTilde_Row_1 = XTilde_1[i,:]
+        y_val_1 = y_vals_1[i]
+        #Generate interpolatable
+        x_interp_1 = np.linspace(0.0,Lx,5001)
+        xTilde_1_interp = x_transfun(x_interp_1,y_val_1)
+        #Interpolate
+        X_1[i,:] = np.interp(XTilde_Row_1,xTilde_1_interp,x_interp_1)
+
+    #Construct mesh for 2nd subproblem
+    x_vals_2 = np.linspace(0.0,Lx,nx)
+    X_2 = np.zeros((ny,nx))
+    for i in range(len(x_vals_2)):
+        X_2[:,i] = x_vals_2[i]
+
+    #Compute ends of a2 using y_transfun and get YTilde_2
+    YTilde_2 = np.zeros((ny,nx))
+    for i in range(len(x_vals_2)):
+        ytilde_end_2 = y_transfun(x_vals_2[i],[Ly])
+        YTilde_2[:,i]  = np.linspace(0.0,ytilde_end_2[0],ny)
+
+    #Use Interpolation to obtain Y_2
+    Y_2 = np.zeros((ny,nx))
+    for i in range(len(x_vals_2)):
+        YTilde_Col_2 = YTilde_2[:,i]
+        x_val_2 = x_vals_2[i]
+        #Generate interpolatable
+        y_interp_2 = np.linspace(0.0,Ly,5001)
+        yTilde_2_interp = y_transfun(x_val_2, y_interp_2)
+        #Interpolate
+        Y_2[:,i] = np.interp(YTilde_Col_2,yTilde_2_interp,y_interp_2)
+
+    #Compute Delauny for interpolation
+    points_1 = np.dstack((XTilde_1,Y_1)).reshape(-1,2)
+    tri_1 = Delaunay(points_1)
+
+    points_1_ = np.dstack((X_1,Y_1)).reshape(-1,2)
+    tri_1_ = Delaunay(points_1_)
+
+    points_2 = np.dstack((X_2,YTilde_2)).reshape(-1,2)
+    tri_2 = Delaunay(points_2)
+
+    points_2_ = np.dstack((X_2,Y_2)).reshape(-1,2)
+    tri_2_ = Delaunay(points_2_)
+
+    print("Mesh Generation Completed")
+
+    #Compute initial conditions
+    f_old = f0fun(X_1,Y_1)
+
+    #Set up time stepping
+    n_steps = round((t_vec[1] - t_vec[0])/dt)
+    print(n_steps)
+    t = t_vec[0]
+    for i in range(n_steps):
+        #Solve first sub-problem
+        #transform to fhat_1
+        fhat_old_1 = f_old*g1fun(X_1,Y_1)
+        #Initalize new fhat_1
+        fhat_new_1 = np.zeros((ny,nx))
+        #Create interpolatable
+        interp1 = LinearNDInterpolator(tri_1, fhat_old_1.copy().flatten())
+        #Compute solution for each point
+        for idx, f in np.ndenumerate(fhat_new_1):
+            x_shift = XTilde_1[idx] - dt
+            if x_shift < 0.0:
+                fhat_new_1[idx] = 0.0
+            else:
+                coord_1 = np.array([x_shift, Y_1[idx]])
+                val = interp1(coord_1)
+                if np.isnan(val) == True:
+                    fhat_new_1[idx] = 0.0
+                else:
+                    fhat_new_1[idx] = val
+
+        #Recompute f_new_1 on mesh1
+        f_new_1_mesh1 = fhat_new_1/g1fun(X_1,Y_1)
+        #Interpolate to mesh2
+        f_interp_1 = LinearNDInterpolator(tri_1_,f_new_1_mesh1.copy().flatten())
+        #Compute f_new_1 on mesh2
+        f_new_1_mesh2 = f_interp_1(X_2,Y_2)
+
+        #Solve 2nd sub-problem
+        fhat_old_2 = f_new_1_mesh2*g2fun(X_2,Y_2)
+        #Initialize new fhat_new_2
+        fhat_new_2 = np.zeros((ny,nx))
+        #Create interpolatable
+        interp2 = LinearNDInterpolator(tri_2, fhat_old_2.copy().flatten())
+        #Solve at each point
+        for idx_, f_ in np.ndenumerate(fhat_new_2):
+            y_shift = YTilde_2[idx_] - dt
+            if y_shift < 0.0:
+                fhat_new_2[idx_] = 0.0
+            else:
+                coord_2 = np.array([X_2[idx_], y_shift])
+                val2 = interp2(coord_2)
+                if np.isnan(val2) == True:
+                    fhat_new_2[idx_] = 0.0
+                else:
+                    fhat_new_2[idx_] = val2
+
+        #Recompute and clobber f_old
+        f_old_mesh2 = fhat_new_2/g2fun(X_2,Y_2)
+
+        f_interp_2 = LinearNDInterpolator(tri_2_,f_old_mesh2.copy().flatten())
+        f_old = f_interp_2(X_1,Y_1)
+        #Update time
+        t = t + dt
+        print("Current Simulation Time is %s"%t)
+
+    return f_old, X_1, Y_1
+        
+            
+
+
 
 
 

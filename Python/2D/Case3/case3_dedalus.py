@@ -22,7 +22,7 @@ domain = de.Domain([x_basis, y_basis], grid_dtype=np.float64)
 
 #Specify Equation
 problem = de.IVP(domain, variables = ["f"])
-problem.add_equation("dt(f) = -dx((0.25+(x*y))*f) -dy((0.5 + 0.25*(x+y))*f)")
+problem.add_equation("dt(f) = -dx((0.25+0.5*(x+y))*f) -dy((0.5 + 0.25*(x+y))*f)")
 
 #Solver
 solver = problem.build_solver(timestepper)

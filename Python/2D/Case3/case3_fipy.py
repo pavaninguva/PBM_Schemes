@@ -7,7 +7,7 @@ plt.rcParams["text.usetex"] = True
 plt.rc('font', family='serif')
 
 #Setting up mesh with domain size Lx=Ly = 2.0
-nx = ny = 200
+nx = ny = 400
 dx = dy = 2.0/nx
 mesh = PeriodicGrid2D(nx=nx, dx=dx, ny=ny, dy=dy)
 
@@ -16,7 +16,7 @@ A1 = mesh.faceCenters[0]
 A2 = mesh.faceCenters[1]
 
 coeff = FaceVariable(mesh=mesh,rank=1)
-coeff[0] = 0.25 + (A1*A2) 
+coeff[0] = 0.25 + 0.5*(A1+A2) 
 coeff[1] = 0.5 + 0.25*(A1+A2)
 
 f1 = CellVariable(mesh=mesh)
@@ -31,11 +31,11 @@ f1.setValue(50.0*numerix.exp(-(((x-0.4)**2)/0.005) -((y-0.4)**2)/0.005))
 #Solve equation
 run_time = 1.0
 t = 0.0
-CFL = 1.0
+CFL = 0.5
 dt = CFL/((max(coeff[0])/dx) + (max(coeff[1])/dy))
 
 while t < run_time - 1e-8:
-    eq1.solve(dt=dt)
+    eq1.solve(dt=dt,solver = LinearGMRESSolver(precon="cholesky"))
     #Update time
     t = t+dt
     print("Current Simulation Time is %s"%t)
