@@ -6,6 +6,7 @@ from functools import partial
 from scipy.interpolate import LinearNDInterpolator, CloughTocher2DInterpolator
 from scipy.spatial import Delaunay
 import awkward as ak
+import time 
 
 """
 Functions to solve homogeneous PBMs with a variable growth rate
@@ -393,6 +394,7 @@ def model3_scratch(n_vec,L_vec,g1fun,g2fun,t_vec,dt,f0fun):
     n_steps = round((t_vec[1] - t_vec[0])/dt)
     print(n_steps)
     t = t_vec[0]
+    start = time.time()
     for i in range(n_steps):
         #Solve first sub-problem
         #transform to fhat_1
@@ -441,6 +443,8 @@ def model3_scratch(n_vec,L_vec,g1fun,g2fun,t_vec,dt,f0fun):
         #Update time
         t = t + dt
         print("Current Simulation Time is %s"%t)
+    end = time.time()
+    print("Time Taken for Simulation is %s"%(end-start))
 
     return f_old, X, Y
 
@@ -531,6 +535,8 @@ def model3_split_exact(n_vec,L_vec,g1fun,g2fun,t_vec,dt,f0fun):
     n_steps = round((t_vec[1] - t_vec[0])/dt)
     print(n_steps)
     t = t_vec[0]
+
+    start = time.time()
     for i in range(n_steps):
         #Solve first sub-problem
         #transform to fhat_1
@@ -586,6 +592,9 @@ def model3_split_exact(n_vec,L_vec,g1fun,g2fun,t_vec,dt,f0fun):
         #Update time
         t = t + dt
         print("Current Simulation Time is %s"%t)
+    
+    end = time.time()
+    print("Time Taken for Simulation is %s"%(end-start))
 
     return f_old, X_1, Y_1
         

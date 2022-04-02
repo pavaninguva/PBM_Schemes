@@ -1,13 +1,14 @@
 from fipy import *
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 
 #formatting
 plt.rcParams["text.usetex"] = True
 plt.rc('font', family='serif')
 
 #Setting up mesh with domain size Lx=Ly = 2.0
-nx = ny = 400
+nx = ny = 200
 dx = dy = 2.0/nx
 mesh = PeriodicGrid2D(nx=nx, dx=dx, ny=ny, dy=dy)
 
@@ -34,11 +35,16 @@ t = 0.0
 CFL = 0.5
 dt = CFL/((max(coeff[0])/dx) + (max(coeff[1])/dy))
 
+start = time.time()
+
 while t < run_time - 1e-8:
     eq1.solve(dt=dt,solver = LinearGMRESSolver(precon="cholesky"))
     #Update time
     t = t+dt
     print("Current Simulation Time is %s"%t)
+
+end = time.time()
+print("Time Taken for Simulation is %s"%(end-start))
 
 #Plotting
 x_vals = np.linspace(0.0,2.0,nx)

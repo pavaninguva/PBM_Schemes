@@ -58,11 +58,13 @@ Perform Simulations
 
 # val_trans_split, X2,Y2 = model3_split_transform([201,201],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
 
-# val_cfl, X_CFL, Y_CFL = model3_split_transform_cfl([2.0,2.0],[0.0,1.0],0.025,g1fun,g2fun,f0_fun)
+# val_cfl, X_CFL, Y_CFL = model3_split_transform_cfl([2.0,2.0],[0.0,1.0],0.01,g1fun,g2fun,f0_fun)
 
-# val_exact, X1, Y1= model3_scratch([151,151],[2.0,2.0],g1fun,g2fun,[0.0,1.0],0.1,f0_fun)
+# print (ak.count(val_cfl,axis=None))
 
-val_exact, X1, Y1= model3_split_exact([201,201],[2.0,2.0],g1fun,g2fun,[0.0,1.0],0.1,f0_fun)
+val_exact, X1, Y1= model3_scratch([201,201],[2.0,2.0],g1fun,g2fun,[0.0,1.0],0.05,f0_fun)
+
+# val_exact, X1, Y1= model3_split_exact([201,201],[2.0,2.0],g1fun,g2fun,[0.0,1.0],0.05,f0_fun)
 
 
 """
@@ -80,21 +82,23 @@ Plotting
 # plt.tight_layout()
 # plt.savefig("case3_upwind.png",dpi=300)
 
-# #Plot mesh
+#Plot nonuniform mesh
 # fig2 = plt.figure(num=2)
-# plt.plot(X,Y,".k")
+# # plt.plot(X,Y,".k")
+# plt.plot(ak.flatten(X_CFL,axis=None),ak.flatten(Y_CFL,axis=None),".k")
 # plt.xlabel(r"$a_{1}$")
 # plt.ylabel(r"$a_{2}$")
+# plt.savefig("case3_split_mesh.png",dpi=300)
 
 #Exact
-fig3 = plt.figure(num=3)
-plt.pcolormesh(X1,Y1,val_exact, cmap="jet",shading='gouraud')
-plt.colorbar(label=r"$f$")
-plt.xlabel(r"$a_{1}$")
-plt.ylabel(r"$a_{2}$")
-plt.clim(0,50)
-plt.tight_layout()
-plt.savefig("case3_exact.png",dpi=300)
+# fig3 = plt.figure(num=3)
+# plt.pcolormesh(X1,Y1,val_exact, cmap="jet",shading='gouraud')
+# plt.colorbar(label=r"$f$")
+# plt.xlabel(r"$a_{1}$")
+# plt.ylabel(r"$a_{2}$")
+# plt.clim(0,50)
+# plt.tight_layout()
+# plt.savefig("case3_exact.png",dpi=300)
 
 #Conservative Split
 # fig4 = plt.figure(num=4)
@@ -137,7 +141,17 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(0,50)
 plt.tight_layout()
-plt.savefig("case3_analytical.png",dpi=300)
+# plt.savefig("case3_analytical.png",dpi=300)
+
+#Analytical
+fig8 = plt.figure(num=8)
+plt.pcolormesh(X1,Y1,val_exact, cmap="jet",shading='gouraud')
+plt.colorbar(label=r"$f$")
+plt.xlabel(r"$a_{1}$")
+plt.ylabel(r"$a_{2}$")
+plt.clim(0,50)
+plt.tight_layout()
+plt.savefig("case3_scratch.png",dpi=300)
 
 
 plt.show()
