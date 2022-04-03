@@ -1,3 +1,4 @@
 *.png
 case*.m
 __pycache__/
+*.csv
