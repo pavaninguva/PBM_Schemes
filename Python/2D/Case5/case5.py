@@ -45,6 +45,7 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(vmin=0.0,vmax=10)
 plt.tight_layout()
+# plt.savefig("case5_ana.png",dpi=300)
 
 #Plot Upwind
 fig2 = plt.figure(num=2)
@@ -54,6 +55,7 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(vmin=0.0,vmax=10)
 plt.tight_layout()
+# plt.savefig("case5_upwind.png",dpi=300)
 
 #Plot exact
 fig3 = plt.figure(num=3)
@@ -63,6 +65,7 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(vmin=0.0,vmax=10)
 plt.tight_layout()
+# plt.savefig("case5_exact.png",dpi=300)
 
 
 

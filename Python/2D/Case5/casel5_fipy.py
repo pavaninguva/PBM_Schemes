@@ -7,7 +7,7 @@ plt.rcParams["text.usetex"] = True
 plt.rc('font', family='serif')
 
 #Setting up mesh with domain size Lx=Ly = 2.0
-nx = ny = 200
+nx = ny = 100
 dx = dy = 2.0/nx
 mesh = PeriodicGrid2D(nx=nx,ny=ny,dx=dx,dy=dy)
 
@@ -58,6 +58,6 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(vmin=0.0,vmax=10)
 plt.tight_layout()
-# plt.savefig("case4_vanleer.png",dpi=300)
+plt.savefig("case5_vanleer.png",dpi=3500)
 
 plt.show()
