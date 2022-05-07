@@ -7,13 +7,13 @@ plt.rcParams["text.usetex"] = True
 plt.rc('font', family='serif')
 
 #Setting up mesh with domain size Lx=Ly = 2.0
-nx = ny = 100
+nx = ny = 50
 dx = dy = 2.0/nx
 mesh = PeriodicGrid2D(nx=nx, dx=dx, ny=ny, dy=dy)
 
 #Specify Problem
 convCoeff = (1.0,1.0)
-CFL = 0.5
+CFL = 1.0
 dt = CFL/((convCoeff[0]/dx) + (convCoeff[1]/dy))
 
 f1 = CellVariable(mesh=mesh, name=r"$f_{1}$")
@@ -55,9 +55,9 @@ plt.pcolormesh(xx,yy,f1_np, cmap="jet",shading='gouraud')
 plt.colorbar(label=r"$f$")
 plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
-plt.clim(0,50)
+# plt.clim(0,50)
 plt.tight_layout()
-plt.savefig("case1_vanleer.png",dpi=300)
+# plt.savefig("case1_vanleer.png",dpi=300)
 
 
 

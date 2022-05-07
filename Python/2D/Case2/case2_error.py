@@ -1,7 +1,8 @@
 from model2 import *
 import matplotlib.pyplot as plt
 import numpy as np
-from fipy import *
+from clawpack import riemann
+from clawpack import pyclaw
 
 #formatting
 plt.rcParams["text.usetex"] = True
@@ -51,59 +52,60 @@ def a2(x):
 """
 FiPy Function
 """
-def mode2_vanleer(nx,ny,Lx,Ly,g1fun,g2fun,t_vec):
-    #Set up mesh
-    dx = Lx/nx
-    dy = Ly/ny
-    mesh = PeriodicGrid2D(nx=nx, ny=ny, dx=dx, dy=dy)
+def model2_weno(nx,ny,Lx,Ly,g1fun,g2fun,t_vec):
+    #Configure Solver
+    riemann_solver = riemann.vc_advection_2D
+    solver = pyclaw.SharpClawSolver2D(riemann_solver)
+    solver.kernel_language ="Fortran"
+    solver.weno_order = 5
+    solver.lim_type = 2
+    solver.cfl_max = 1.0
 
-    #Construct Problem
-    A1 = mesh.faceCenters[0]
-    A2 = mesh.faceCenters[1]
+    #Enforce BCs
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[1] = pyclaw.BC.periodic
+    solver.bc_upper[1] = pyclaw.BC.periodic
+    solver.aux_bc_lower[0] = pyclaw.BC.extrap
+    solver.aux_bc_upper[0] = pyclaw.BC.extrap
+    solver.aux_bc_lower[1] = pyclaw.BC.extrap
+    solver.aux_bc_upper[1] = pyclaw.BC.extrap
 
-    coeff = FaceVariable(mesh=mesh,rank=1)
-    coeff[0] = g1fun(A1)
-    coeff[1] = g2fun(A2)
+    #Set mesh
+    nx = nx
+    ny = ny
+    Lx = Lx
+    Ly = Ly
+    x = pyclaw.Dimension(0.0,Lx,nx,name="x")
+    y = pyclaw.Dimension(0.0,Ly,ny,name="y")
+    domain = pyclaw.Domain([x,y])
 
-    f1 = CellVariable(mesh=mesh)
-    eq1 = TransientTerm(var = f1) + VanLeerConvectionTerm(var=f1, coeff=coeff) == 0
+    #Construct Equation and Set Velocities
+    num_aux = 2
+    solver.num_eqn = 1
+    solver.num_waves = 1
+    state = pyclaw.State(domain,solver.num_eqn,num_aux)
+    xe, ye = state.grid.p_nodes
+    state.aux[0,:,:] = 0.1 + 0.05*xe[:-1,1:]
+    state.aux[1,:,:] = 0.5 + 0.25*ye[:-1,1:]
 
-    #Define Initial Condition
-    x = mesh.cellCenters[0]
-    y = mesh.cellCenters[1]
-    f1.setValue(50.0*numerix.exp(-(((x-0.4)**2)/0.005) -((y-0.4)**2)/0.005))
+    #Set IC
+    xc, yc = domain.grid.p_centers
+    state.q[0,:,:] = (50.0*np.exp(-(((xc-0.4)**2)/0.005) -((yc-0.4)**2)/0.005))*(0.1+0.05*xc)*(0.5+0.25*yc)
 
-    #Solve Equation
-    run_time = t_vec[1]
-    t = t_vec[0]
+    #Set Controller
+    claw = pyclaw.Controller()
+    claw.keep_copy = True
+    claw.solution = pyclaw.Solution(state, domain)
+    claw.tfinal = 1.0
+    claw.solver = solver
 
-    CFL = 0.5
-    dt = CFL/((max(coeff[0])/dx) + (max(coeff[1])/dy))
+    status = claw.run()
+    print(status)
+    sol = claw.frames[-1].q[0,:,:]
+    f_np = sol/((0.1+0.05*xc)*(0.5+0.25*yc))
 
-    while t < run_time - 1e-8:
-        eq1.solve(dt=dt)
-        #Update time
-        t = t+dt
-        print("Current Simulation Time is %s"%t)
-
-    #Reshape output
-    f_np = np.asarray(f1).reshape(nx,-1)
-
-    #Compute analytical solution
-    g1_vals = g1fun(x)
-    g2_vals = g2fun(y)
-
-    x_shift = (x+2.0)*numerix.exp(-0.05*t_vec[1]) -2.0
-    y_shift = (y+2.0)*numerix.exp(-0.25*t_vec[1]) - 2.0
-
-    g1_shift = g1fun(x_shift)
-    g2_shift = g2fun(y_shift)
-
-    f0_shift = 50.0*numerix.exp(-(((x_shift-0.4)**2)/0.005) -(((y_shift-0.4)**2)/0.005))
-
-    f_ana = CellVariable(mesh=mesh)
-    f_ana.setValue((g1_shift*g2_shift*f0_shift)/(g1_vals*g2_vals))
-    f_ana_np = np.asarray(f_ana).reshape(nx,-1)
+    f_ana_np = f_analytical(xc,yc,g1fun,g2fun,f0_fun,1.0)
 
     return f_np, f_ana_np
 
@@ -113,8 +115,8 @@ Run Simulations
 
 n_cell_vals = np.array([11,21,41,51,81,101,161,201,251])
 
-vanleer_rmse = np.zeros(len(n_cell_vals))
-vanleer_mae = np.zeros(len(n_cell_vals))
+weno_rmse = np.zeros(len(n_cell_vals))
+weno_mae = np.zeros(len(n_cell_vals))
 
 con_upwind_rmse = np.zeros(len(n_cell_vals))
 con_upwind_mae = np.zeros(len(n_cell_vals))
@@ -134,7 +136,7 @@ for i in range(len(n_cell_vals)):
     n_cell_fipy = n_cell - 1
 
     #Perform Simulations
-    val_vanleer, val_ana_fipy = mode2_vanleer(n_cell_fipy,n_cell_fipy,2.0,2.0,g1fun,g2fun,[0.0,1.0])
+    val_weno, val_ana_fipy = model2_weno(n_cell_fipy,n_cell_fipy,2.0,2.0,g1fun,g2fun,[0.0,1.0])
     val_upwind, x,y = model2_conservative_upwind([n_cell,n_cell],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
     val_upwind_trans, x2,y2 = model2_transformed_upwind([n_cell,n_cell],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
 
@@ -149,8 +151,8 @@ for i in range(len(n_cell_vals)):
     f_ana_exact_ana = f_analytical(x4,y4,g1fun,g2fun,f0_fun,1.0)
 
     #Compute Error
-    vanleer_rmse[i] = np.sqrt(np.mean((val_ana_fipy-val_vanleer)**2))
-    vanleer_mae[i] = np.amax(np.abs(val_vanleer-val_ana_fipy))
+    weno_rmse[i] = np.sqrt(np.mean((val_ana_fipy-val_weno)**2))
+    weno_mae[i] = np.amax(np.abs(val_weno-val_ana_fipy))
 
     con_upwind_rmse[i] = np.sqrt(np.mean((f_ana-val_upwind[:,:,-1])**2))
     con_upwind_mae[i] = np.amax(np.abs(f_ana-val_upwind[:,:,-1]))
@@ -203,7 +205,7 @@ Plotting
 
 fig1 = plt.figure(num=1)
 plt.loglog(np.square(n_cell_vals),con_upwind_rmse,"-ko",label="Con-Uniform,Upwind",markerfacecolor="none")
-plt.loglog(np.square(n_cell_vals),vanleer_rmse,"-bo",label="Con-Uniform,Van Leer",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),weno_rmse,"-bo",label="Trans-Uniform,WENO",markerfacecolor="none")
 plt.loglog(np.square(n_cell_vals),trans_upwind_rmse,"--ks",label="Trans-Uniform,Upwind",markerfacecolor="none")
 plt.loglog(n_cells_nonuni,con_nonuni_rmse,":k^",label="Con-Nonuniform,Upwind",markerfacecolor="none")
 plt.loglog(n_cells_nonuni,trans_nonuni_rmse,"-.kd",label="Trans-Nonuniform,Upwind",markerfacecolor="none")
@@ -217,7 +219,7 @@ plt.savefig("case2_rmse.png",dpi=300)
 
 fig2 = plt.figure(num=2)
 plt.loglog(np.square(n_cell_vals),con_upwind_mae,"-ko",label="Con-Uniform,Upwind",markerfacecolor="none")
-plt.loglog(np.square(n_cell_vals),vanleer_mae,"-bo",label="Con-Uniform,Van Leer",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),weno_mae,"-bo",label="Trans-Uniform,WENO",markerfacecolor="none")
 plt.loglog(np.square(n_cell_vals),trans_upwind_mae,"--ks",label="Trans-Uniform,Upwind",markerfacecolor="none")
 plt.loglog(n_cells_nonuni,con_nonuni_mae,":k^",label="Con-Nonuniform,Upwind",markerfacecolor="none")
 plt.loglog(n_cells_nonuni,trans_nonuni_mae,"-.kd",label="Trans-Nonuniform,Upwind",markerfacecolor="none")

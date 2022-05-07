@@ -1,4 +1,6 @@
 *.png
 case*.m
-__pycache__/
+*__pycache__/
 *.csv
+*.log
+*_output/
