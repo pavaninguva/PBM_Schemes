@@ -63,61 +63,61 @@ def model4_upwind(nvec, Lvec, g_vec, t_vec, CFL, hfun,f0fun):
     return f_old, X,Y
 
 
+# def model4_split(nx, Lvec, g_vec, t_vec, hfun, f0fun):
+
+#     #Define mesh and timevec
+#     Lx,Ly = Lvec
+#     dx = Lx/(nx-1)
+#     dt = 1.0/((g_vec[0]/dx))
+#     #Compute dy and ny using dt
+#     dy = g_vec[0]*dt
+#     ny = int((Ly/dy) + 1)
+#     n_steps = round((t_vec[1] - t_vec[0])/dt)
+
+#     x_vals = np.linspace(start=0,stop=Lx,num=nx)
+#     y_vals = np.linspace(start=0,stop=Ly,num=ny)
+#     X,Y = np.meshgrid(x_vals,y_vals)
+
+#     #Initialize array
+#     f_old = f0fun(X,Y)
+
+#     #Perform timestepping
+#     t = t_vec[0]
+#     for i in range(n_steps):
+#         #Initalize dummy array to be clobbered
+#         f_vals = np.zeros((ny,nx))
+#         f_vals_ = np.zeros((ny,nx))
+
+#         h_vals = hfun(t, X, Y)
+
+#         #Solve in x-direction first
+#         for idx, f in np.ndenumerate(f_vals):
+#             #Impose BCs
+#             #Left BC (a1 = 0): f(ghost node) = 0
+#             if idx[1] == 0:
+#                 f_vals[idx] = 0.0 
+#             #No Need to Impose No BC on RHS
+#             else:
+#                 f_vals[idx] = f_old[idx[0],idx[1]-1]
+
+#         #Solve in y-direction 
+#         for idx_, f_ in np.ndenumerate(f_vals_):
+#             #Impose BCs
+#             #Bottom BC
+#             if idx_[0] == 0:
+#                 f_vals_[idx_] = dt*h_vals[idx]
+#             else:
+#                 f_vals_[idx_] = f_vals[idx_[0]-1, idx_[1]] + dt*h_vals[idx]
+
+#         #Update
+#         f_old = f_vals_
+#         t = t + dt
+#         print("Current Simulation Time is %s"%t)
+
+#     return f_old, X,Y
+
+
 def model4_split(nx, Lvec, g_vec, t_vec, hfun, f0fun):
-
-    #Define mesh and timevec
-    Lx,Ly = Lvec
-    dx = Lx/(nx-1)
-    dt = 1.0/((g_vec[0]/dx))
-    #Compute dy and ny using dt
-    dy = g_vec[0]*dt
-    ny = int((Ly/dy) + 1)
-    n_steps = round((t_vec[1] - t_vec[0])/dt)
-
-    x_vals = np.linspace(start=0,stop=Lx,num=nx)
-    y_vals = np.linspace(start=0,stop=Ly,num=ny)
-    X,Y = np.meshgrid(x_vals,y_vals)
-
-    #Initialize array
-    f_old = f0fun(X,Y)
-
-    #Perform timestepping
-    t = t_vec[0]
-    for i in range(n_steps):
-        #Initalize dummy array to be clobbered
-        f_vals = np.zeros((ny,nx))
-        f_vals_ = np.zeros((ny,nx))
-
-        h_vals = hfun(t, X, Y)
-
-        #Solve in x-direction first
-        for idx, f in np.ndenumerate(f_vals):
-            #Impose BCs
-            #Left BC (a1 = 0): f(ghost node) = 0
-            if idx[1] == 0:
-                f_vals[idx] = 0.0 
-            #No Need to Impose No BC on RHS
-            else:
-                f_vals[idx] = f_old[idx[0],idx[1]-1]
-
-        #Solve in y-direction 
-        for idx_, f_ in np.ndenumerate(f_vals_):
-            #Impose BCs
-            #Bottom BC
-            if idx_[0] == 0:
-                f_vals_[idx_] = dt*h_vals[idx]
-            else:
-                f_vals_[idx_] = f_vals[idx_[0]-1, idx_[1]] + dt*h_vals[idx]
-
-        #Update
-        f_old = f_vals_
-        t = t + dt
-        print("Current Simulation Time is %s"%t)
-
-    return f_old, X,Y
-
-
-def model4_split2(nx, Lvec, g_vec, t_vec, hfun, f0fun):
 
     #Define mesh and timevec
     Lx,Ly = Lvec

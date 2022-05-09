@@ -72,5 +72,6 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.tight_layout()
 plt.clim(0,50)
+plt.savefig("case3_weno.png",dpi=300)
 
 plt.show()
