@@ -43,7 +43,7 @@ def analytical(x,y,t):
 
 
 """
-FiPy Function
+Pyclaw Function
 """
 
 def model3_weno(nx,ny,Lx,Ly, g1fun,g2fun,t_vec):
@@ -133,89 +133,89 @@ split_transnonuni_upwind_mae = np.zeros(len(dt_vals))
 
 transuni_ncell = np.zeros(len(dt_vals))
 
-# for i in range(len(n_cell_vals)):
-#     #Extract n_cells
-#     n_cell = n_cell_vals[i]
-#     n_cell_fipy = n_cell - 1
+for i in range(len(n_cell_vals)):
+    #Extract n_cells
+    n_cell = n_cell_vals[i]
+    n_cell_fipy = n_cell - 1
 
-#     #Van leer and error
-#     val_weno, val_ana_pyclaw = model3_weno(n_cell_fipy,n_cell_fipy,2.0,2.0,g1fun,g2fun,[0.0,1.0])
+    #Van leer and error
+    val_weno, val_ana_pyclaw = model3_weno(n_cell_fipy,n_cell_fipy,2.0,2.0,g1fun,g2fun,[0.0,1.0])
 
-#     weno_rmse[i] = np.sqrt(np.mean((val_ana_pyclaw-val_weno)**2))
-#     weno_mae[i] = np.amax(np.abs(val_weno-val_ana_pyclaw))
+    weno_rmse[i] = np.sqrt(np.mean((val_ana_pyclaw-val_weno)**2))
+    weno_mae[i] = np.amax(np.abs(val_weno-val_ana_pyclaw))
 
-#     #Conuniform, upwind and error
-#     val_conupwind, X, Y = model3_conservative_upwind([n_cell,n_cell],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
+    #Conuniform, upwind and error
+    val_conupwind, X, Y = model3_conservative_upwind([n_cell,n_cell],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
 
-#     val_ana = analytical(X,Y,1.0)
-#     conuniform_upwind_rmse[i] = np.sqrt(np.mean((val_ana-val_conupwind[:,:,-1])**2))
-#     conuniform_upwind_mae[i] = np.amax(np.abs(val_conupwind[:,:,-1]-val_ana))
+    val_ana = analytical(X,Y,1.0)
+    conuniform_upwind_rmse[i] = np.sqrt(np.mean((val_ana-val_conupwind[:,:,-1])**2))
+    conuniform_upwind_mae[i] = np.amax(np.abs(val_conupwind[:,:,-1]-val_ana))
 
-#     #Split Conuniform upwind and error
-#     val_split, X1, Y1 = model3_split_conservative([n_cell,n_cell],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
+    #Split Conuniform upwind and error
+    val_split, X1, Y1 = model3_split_conservative([n_cell,n_cell],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
 
-#     val_ana = analytical(X1,Y1,1.0)
-#     split_conuniform_upwind_rmse[i] = np.sqrt(np.mean((val_ana-val_split[:,:,-1])**2))
-#     split_conuniform_upwind_mae[i] = np.amax(np.abs(val_split[:,:,-1]-val_ana))
+    val_ana = analytical(X1,Y1,1.0)
+    split_conuniform_upwind_rmse[i] = np.sqrt(np.mean((val_ana-val_split[:,:,-1])**2))
+    split_conuniform_upwind_mae[i] = np.amax(np.abs(val_split[:,:,-1]-val_ana))
 
-#     #Split transuniform upwind and error
-#     val_split2, X2, Y2 = model3_split_transform([n_cell,n_cell],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
+    #Split transuniform upwind and error
+    val_split2, X2, Y2 = model3_split_transform([n_cell,n_cell],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
 
-#     val_ana_ = analytical(X2,Y2,1.0)
-#     split_transuniform_upwind_rmse[i] = np.sqrt(np.mean((val_ana_-val_split2[:,:,-1])**2))
-#     split_transuniform_upwind_mae[i] = np.amax(np.abs(val_split2[:,:,-1]-val_ana_))
+    val_ana_ = analytical(X2,Y2,1.0)
+    split_transuniform_upwind_rmse[i] = np.sqrt(np.mean((val_ana_-val_split2[:,:,-1])**2))
+    split_transuniform_upwind_mae[i] = np.amax(np.abs(val_split2[:,:,-1]-val_ana_))
 
-# for j in range(len(dt_vals)):
-#     dt = dt_vals[j]
+for j in range(len(dt_vals)):
+    dt = dt_vals[j]
 
-#     #Solve
-#     val_cfl, X_CFL, Y_CFL = model3_split_transform_cfl([2.0,2.0],[0.0,1.0],dt,g1fun,g2fun,f0_fun)
+    #Solve
+    val_cfl, X_CFL, Y_CFL = model3_split_transform_cfl([2.0,2.0],[0.0,1.0],dt,g1fun,g2fun,f0_fun)
 
-#     #Output ncell
-#     transuni_ncell[j] = ak.count(val_cfl,axis=None)
+    #Output ncell
+    transuni_ncell[j] = ak.count(val_cfl,axis=None)
 
-#     #Compute error
-#     val_ana2 = analytical(X_CFL,Y_CFL,1.0) 
+    #Compute error
+    val_ana2 = analytical(X_CFL,Y_CFL,1.0) 
 
-#     split_transnonuni_upwind_rmse[j] = np.sqrt(ak.mean((val_ana2-val_cfl)**2))
-#     split_transnonuni_upwind_mae[j] = max(ak.max(val_ana2-val_cfl), -ak.min(val_ana2-val_cfl))
+    split_transnonuni_upwind_rmse[j] = np.sqrt(ak.mean((val_ana2-val_cfl)**2))
+    split_transnonuni_upwind_mae[j] = max(ak.max(val_ana2-val_cfl), -ak.min(val_ana2-val_cfl))
 
 
 """
 Solve exact
 """
 
-dt_vals_exact = np.array([0.5,0.25,0.2,0.1,0.05,0.04,0.025,0.01])
+# dt_vals_exact = np.array([0.5,0.25,0.2,0.1,0.05,0.04,0.025,0.01])
 
-exact_51_rmse = np.zeros(len(dt_vals_exact))
-exact_51_mae = np.zeros(len(dt_vals_exact))
+# exact_51_rmse = np.zeros(len(dt_vals_exact))
+# exact_51_mae = np.zeros(len(dt_vals_exact))
 
-exact_101_rmse = np.zeros(len(dt_vals_exact))
-exact_101_mae = np.zeros(len(dt_vals_exact))
+# exact_101_rmse = np.zeros(len(dt_vals_exact))
+# exact_101_mae = np.zeros(len(dt_vals_exact))
 
-exact_201_rmse = np.zeros(len(dt_vals_exact))
-exact_201_mae = np.zeros(len(dt_vals_exact))
+# exact_201_rmse = np.zeros(len(dt_vals_exact))
+# exact_201_mae = np.zeros(len(dt_vals_exact))
 
-for k in range(len(dt_vals_exact)):
-    dt = dt_vals_exact[k]
+# for k in range(len(dt_vals_exact)):
+#     dt = dt_vals_exact[k]
 
-    val_exact_51, X51, Y51= model3_split_exact([51,51],[2.0,2.0],g1fun,g2fun,[0.0,1.0],dt,f0_fun)
-    val_ana_51 = analytical(X51,Y51,1.0)
+#     val_exact_51, X51, Y51= model3_split_exact([51,51],[2.0,2.0],g1fun,g2fun,[0.0,1.0],dt,f0_fun)
+#     val_ana_51 = analytical(X51,Y51,1.0)
 
-    exact_51_rmse[k] = np.sqrt(np.mean((val_exact_51-val_ana_51)**2))
-    exact_51_mae[k] = np.amax(np.abs(val_exact_51-val_ana_51))
+#     exact_51_rmse[k] = np.sqrt(np.mean((val_exact_51-val_ana_51)**2))
+#     exact_51_mae[k] = np.amax(np.abs(val_exact_51-val_ana_51))
 
-    val_exact_101, X101, Y101= model3_split_exact([101,101],[2.0,2.0],g1fun,g2fun,[0.0,1.0],dt,f0_fun)
-    val_ana_101 = analytical(X101,Y101,1.0)
+#     val_exact_101, X101, Y101= model3_split_exact([101,101],[2.0,2.0],g1fun,g2fun,[0.0,1.0],dt,f0_fun)
+#     val_ana_101 = analytical(X101,Y101,1.0)
 
-    exact_101_rmse[k] = np.sqrt(np.mean((val_exact_101-val_ana_101)**2))
-    exact_101_mae[k] = np.amax(np.abs(val_exact_101-val_ana_101))
+#     exact_101_rmse[k] = np.sqrt(np.mean((val_exact_101-val_ana_101)**2))
+#     exact_101_mae[k] = np.amax(np.abs(val_exact_101-val_ana_101))
 
-    val_exact_201, X201, Y201= model3_split_exact([201,201],[2.0,2.0],g1fun,g2fun,[0.0,1.0],dt,f0_fun)
-    val_ana_201 = analytical(X201,Y201,1.0)
+#     val_exact_201, X201, Y201= model3_split_exact([201,201],[2.0,2.0],g1fun,g2fun,[0.0,1.0],dt,f0_fun)
+#     val_ana_201 = analytical(X201,Y201,1.0)
 
-    exact_201_rmse[k] = np.sqrt(np.mean((val_exact_201-val_ana_201)**2))
-    exact_201_mae[k] = np.amax(np.abs(val_exact_201-val_ana_201))
+#     exact_201_rmse[k] = np.sqrt(np.mean((val_exact_201-val_ana_201)**2))
+#     exact_201_mae[k] = np.amax(np.abs(val_exact_201-val_ana_201))
 
 
 
@@ -225,51 +225,51 @@ Plotting
 """
 
 #Plot RMSE
-# fig1 = plt.figure(num=1)
-# plt.loglog(np.square(n_cell_vals),conuniform_upwind_rmse,"-ko",label="Con-Uniform,Upwind",markerfacecolor="none")
-# plt.loglog(np.square(n_cell_vals),split_conuniform_upwind_rmse,"--ks",label="Split-Con-Uniform,Upwind",markerfacecolor="none")
-# plt.loglog(np.square(n_cell_vals),split_transuniform_upwind_rmse,":k^",label="Split-Trans-Uniform,Upwind",markerfacecolor="none")
-# plt.loglog(np.square(n_cell_vals),weno_rmse,"-bo",label="Expanded-Uniform,WENO",markerfacecolor="none")
-# plt.loglog(transuni_ncell,split_transnonuni_upwind_rmse, "-ro", label = "Split-Trans-Uniform,Upwind",markerfacecolor="none")
-# plt.xlabel(r"$N_{Cells}$")
-# plt.ylabel(r"RMSE")
-# plt.legend(fontsize="medium")
-# plt.tight_layout()
-# # plt.savefig("case3_rmse.png",dpi=300)
+fig1 = plt.figure(num=1)
+plt.loglog(np.square(n_cell_vals),conuniform_upwind_rmse,"-ko",label="Con-Uniform,Upwind",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),split_conuniform_upwind_rmse,"--ks",label="Split-Con-Uniform,Upwind",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),split_transuniform_upwind_rmse,":k^",label="Split-Trans-Uniform,Upwind",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),weno_rmse,"-bo",label="Expanded-Uniform,WENO",markerfacecolor="none")
+plt.loglog(transuni_ncell,split_transnonuni_upwind_rmse, "-ro", label = "Split-Trans-Nonuniform,Upwind",markerfacecolor="none")
+plt.xlabel(r"$N_{Cells}$")
+plt.ylabel(r"RMSE")
+plt.legend(fontsize="medium")
+plt.tight_layout()
+plt.savefig("case3_rmse.png",dpi=300)
 
-# #Plot MAE
-# fig2 = plt.figure(num=2)
-# plt.loglog(np.square(n_cell_vals),conuniform_upwind_mae,"-ko",label="Con-Uniform,Upwind",markerfacecolor="none")
-# plt.loglog(np.square(n_cell_vals),split_conuniform_upwind_mae,"--ks",label="Split-Con-Uniform,Upwind",markerfacecolor="none")
-# plt.loglog(np.square(n_cell_vals),split_transuniform_upwind_mae,":k^",label="Split-Trans-Uniform,Upwind",markerfacecolor="none")
-# plt.loglog(np.square(n_cell_vals),weno_mae,"-bo",label="Expanded-Uniform,WENO",markerfacecolor="none")
-# plt.loglog(transuni_ncell,split_transnonuni_upwind_mae, "-ro", label = "Split-Trans-Uniform,Upwind",markerfacecolor="none")
-# plt.xlabel(r"$N_{Cells}$")
-# plt.ylabel(r"MAE")
-# plt.legend(fontsize="medium")
-# plt.tight_layout()
-# plt.savefig("case3_mae.png",dpi=300)
+#Plot MAE
+fig2 = plt.figure(num=2)
+plt.loglog(np.square(n_cell_vals),conuniform_upwind_mae,"-ko",label="Con-Uniform,Upwind",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),split_conuniform_upwind_mae,"--ks",label="Split-Con-Uniform,Upwind",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),split_transuniform_upwind_mae,":k^",label="Split-Trans-Uniform,Upwind",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),weno_mae,"-bo",label="Expanded-Uniform,WENO",markerfacecolor="none")
+plt.loglog(transuni_ncell,split_transnonuni_upwind_mae, "-ro", label = "Split-Trans-Nonuniform,Upwind",markerfacecolor="none")
+plt.xlabel(r"$N_{Cells}$")
+plt.ylabel(r"MAE")
+plt.legend(fontsize="medium")
+plt.tight_layout()
+plt.savefig("case3_mae.png",dpi=300)
 
 
 #Plot exact scheme error
-fig3 = plt.figure(num=3)
-plt.loglog(dt_vals_exact,exact_51_rmse,"-ko",label=r"$N_{cell}=51$")
-plt.loglog(dt_vals_exact,exact_101_rmse,"-ks",label=r"$N_{cell}=101$")
-plt.loglog(dt_vals_exact,exact_201_rmse,"-k^",label=r"$N_{cell}=201$")
-plt.xlabel(r"$\Delta t$")
-plt.ylabel(r"RMSE")
-plt.legend()
-plt.tight_layout()
-plt.savefig("case3_exact_rmse.png",dpi=300)
+# fig3 = plt.figure(num=3)
+# plt.loglog(dt_vals_exact,exact_51_rmse,"-ko",label=r"$N_{cell}=51$")
+# plt.loglog(dt_vals_exact,exact_101_rmse,"-ks",label=r"$N_{cell}=101$")
+# plt.loglog(dt_vals_exact,exact_201_rmse,"-k^",label=r"$N_{cell}=201$")
+# plt.xlabel(r"$\Delta t$")
+# plt.ylabel(r"RMSE")
+# plt.legend()
+# plt.tight_layout()
+# plt.savefig("case3_exact_rmse.png",dpi=300)
 
-fig4 = plt.figure(num=4)
-plt.loglog(dt_vals_exact,exact_51_mae,"-ko",label=r"$N_{cell}=51$")
-plt.loglog(dt_vals_exact,exact_101_mae,"-ks",label=r"$N_{cell}=101$")
-plt.loglog(dt_vals_exact,exact_201_mae,"-k^",label=r"$N_{cell}=201$")
-plt.xlabel(r"$\Delta t$")
-plt.ylabel(r"MAE")
-plt.legend()
-plt.tight_layout()
-plt.savefig("case3_exact_mae.png",dpi=300)
+# fig4 = plt.figure(num=4)
+# plt.loglog(dt_vals_exact,exact_51_mae,"-ko",label=r"$N_{cell}=51$")
+# plt.loglog(dt_vals_exact,exact_101_mae,"-ks",label=r"$N_{cell}=101$")
+# plt.loglog(dt_vals_exact,exact_201_mae,"-k^",label=r"$N_{cell}=201$")
+# plt.xlabel(r"$\Delta t$")
+# plt.ylabel(r"MAE")
+# plt.legend()
+# plt.tight_layout()
+# plt.savefig("case3_exact_mae.png",dpi=300)
 
 plt.show()

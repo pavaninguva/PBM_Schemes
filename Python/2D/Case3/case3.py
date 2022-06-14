@@ -52,89 +52,27 @@ xx,yy = np.meshgrid(x_vals,y_vals)
 Perform Simulations
 """
 
-# val_upwind ,x,y= model3_conservative_upwind([201,201],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
+val_upwind ,x,y= model3_conservative_upwind([101,101],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
 
-# val_split, X, Y = model3_split_conservative([201,201],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
+val_split, X, Y = model3_split_conservative([101,101],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
 
-# val_trans_split, X2,Y2 = model3_split_transform([201,201],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
+val_trans_split, X2,Y2 = model3_split_transform([101,101],[2.0,2.0],g1fun,g2fun,[0.0,1.0],f0_fun)
 
-# val_cfl, X_CFL, Y_CFL = model3_split_transform_cfl([2.0,2.0],[0.0,1.0],0.01,g1fun,g2fun,f0_fun)
+val_cfl, X_CFL, Y_CFL = model3_split_transform_cfl([2.0,2.0],[0.0,1.0],0.01,g1fun,g2fun,f0_fun)
 
-# print (ak.count(val_cfl,axis=None))
+print (ak.count(val_cfl,axis=None))
 
-val_exact, X1, Y1= model3_scratch([201,201],[2.0,2.0],g1fun,g2fun,[0.0,1.0],0.05,f0_fun)
+val_exact, X1, Y1= model3_split_exact([101,101],[2.0,2.0],g1fun,g2fun,[0.0,1.0],0.1,f0_fun)
 
-# val_exact, X1, Y1= model3_split_exact([201,201],[2.0,2.0],g1fun,g2fun,[0.0,1.0],0.05,f0_fun)
+# val_exact_scratch, X1s, Y1s= model3_scratch([101,101],[2.0,2.0],g1fun,g2fun,[0.0,1.0],0.1,f0_fun)
 
 
 """
 Plotting
 """
 
-
-#Upwind
-# fig1 = plt.figure(num=1)
-# plt.pcolormesh(x,y,val_upwind[:,:,-1], cmap="jet",shading='gouraud')
-# plt.colorbar(label=r"$f$")
-# plt.xlabel(r"$a_{1}$")
-# plt.ylabel(r"$a_{2}$")
-# plt.clim(0,50)
-# plt.tight_layout()
-# plt.savefig("case3_upwind.png",dpi=300)
-
-#Plot nonuniform mesh
-# fig2 = plt.figure(num=2)
-# # plt.plot(X,Y,".k")
-# plt.plot(ak.flatten(X_CFL,axis=None),ak.flatten(Y_CFL,axis=None),".k")
-# plt.xlabel(r"$a_{1}$")
-# plt.ylabel(r"$a_{2}$")
-# plt.savefig("case3_split_mesh.png",dpi=300)
-
-#Exact
-# fig3 = plt.figure(num=3)
-# plt.pcolormesh(X1,Y1,val_exact, cmap="jet",shading='gouraud')
-# plt.colorbar(label=r"$f$")
-# plt.xlabel(r"$a_{1}$")
-# plt.ylabel(r"$a_{2}$")
-# plt.clim(0,50)
-# plt.tight_layout()
-# plt.savefig("case3_exact.png",dpi=300)
-
-#Conservative Split
-# fig4 = plt.figure(num=4)
-# plt.pcolormesh(X,Y,val_split[:,:,-1], cmap="jet",shading='gouraud')
-# plt.colorbar(label=r"$f$")
-# plt.xlabel(r"$a_{1}$")
-# plt.ylabel(r"$a_{2}$")
-# plt.clim(0,50)
-# plt.tight_layout()
-# plt.savefig("case3_split_naive.png",dpi=300)
-
-#Transformed Split
-# fig5 = plt.figure(num=5)
-# plt.pcolormesh(X2,Y2,val_trans_split[:,:,-1], cmap="jet",shading='gouraud')
-# plt.colorbar(label=r"$f$")
-# plt.xlabel(r"$a_{1}$")
-# plt.ylabel(r"$a_{2}$")
-# plt.clim(0,50)
-# plt.tight_layout()
-# plt.savefig("case3_split_trans.png",dpi=300)
-
-
-#Plot CFL=1 Mesh
-# fig6 = plt.figure(num=6)
-# plt.tripcolor(ak.flatten(X_CFL,axis=None),ak.flatten(Y_CFL,axis=None),ak.flatten(val_cfl,axis=None),cmap="jet", shading="gouraud")
-# plt.colorbar(label=r"$f$")
-# plt.xlabel(r"$a_{1}$")
-# plt.ylabel(r"$a_{2}$")
-# plt.xlim((0,2))
-# plt.ylim((0,2))
-# plt.clim(0,50)
-# plt.tight_layout()
-# plt.savefig("case3_split_cfl.png",dpi=300)
-
 #Analytical
-fig7 = plt.figure(num=7)
+fig1 = plt.figure(num=1)
 plt.pcolormesh(xx,yy,analytical(xx,yy,1.0), cmap="jet",shading='gouraud')
 plt.colorbar(label=r"$f$")
 plt.xlabel(r"$a_{1}$")
@@ -143,15 +81,73 @@ plt.clim(0,50)
 plt.tight_layout()
 # plt.savefig("case3_analytical.png",dpi=300)
 
-#Analytical
-fig8 = plt.figure(num=8)
+
+#Upwind
+fig2 = plt.figure(num=2)
+plt.pcolormesh(x,y,val_upwind[:,:,-1], cmap="jet",shading='gouraud')
+plt.colorbar(label=r"$f$")
+plt.xlabel(r"$a_{1}$")
+plt.ylabel(r"$a_{2}$")
+plt.clim(0,50)
+plt.tight_layout()
+plt.savefig("case3_upwind.png",dpi=300)
+
+#Conservative Split
+fig3 = plt.figure(num=3)
+plt.pcolormesh(X,Y,val_split[:,:,-1], cmap="jet",shading='gouraud')
+plt.colorbar(label=r"$f$")
+plt.xlabel(r"$a_{1}$")
+plt.ylabel(r"$a_{2}$")
+plt.clim(0,50)
+plt.tight_layout()
+plt.savefig("case3_split_naive.png",dpi=300)
+
+#Transformed Split
+fig4 = plt.figure(num=4)
+plt.pcolormesh(X2,Y2,val_trans_split[:,:,-1], cmap="jet",shading='gouraud')
+plt.colorbar(label=r"$f$")
+plt.xlabel(r"$a_{1}$")
+plt.ylabel(r"$a_{2}$")
+plt.clim(0,50)
+plt.tight_layout()
+plt.savefig("case3_split_trans.png",dpi=300)
+
+#Plot CFL=1 Nonuniform mesh
+fig5 = plt.figure(num=5)
+plt.tripcolor(ak.flatten(X_CFL,axis=None),ak.flatten(Y_CFL,axis=None),ak.flatten(val_cfl,axis=None),cmap="jet", shading="gouraud")
+plt.colorbar(label=r"$f$")
+plt.xlabel(r"$a_{1}$")
+plt.ylabel(r"$a_{2}$")
+plt.xlim((0,2))
+plt.ylim((0,2))
+plt.clim(0,50)
+plt.tight_layout()
+plt.savefig("case3_split_cfl.png",dpi=300)
+
+#Exact
+fig6 = plt.figure(num=6)
 plt.pcolormesh(X1,Y1,val_exact, cmap="jet",shading='gouraud')
 plt.colorbar(label=r"$f$")
 plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(0,50)
 plt.tight_layout()
-plt.savefig("case3_scratch.png",dpi=300)
+plt.savefig("case3_splitexact.png",dpi=300)
+
+
+#Exact_scratch
+# fig7 = plt.figure(num=7)
+# plt.pcolormesh(X1s,Y1s,val_exact_scratch, cmap="jet",shading='gouraud')
+# plt.colorbar(label=r"$f$")
+# plt.xlabel(r"$a_{1}$")
+# plt.ylabel(r"$a_{2}$")
+# plt.clim(0,50)
+# plt.tight_layout()
+# plt.savefig("case3_scratch.png",dpi=300)
+
+
+
+
 
 
 plt.show()
