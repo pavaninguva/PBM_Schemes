@@ -48,10 +48,6 @@ def a2(x):
     return f
 
 
-
-
-
-
 """
 Perform Simulations
 """
@@ -63,7 +59,7 @@ val_con_nonuniform,x3,y3 = model2_conservative_nonuniform([0.0,2.0],[0.0,2.0],0.
 val_trans_nonuni,x4,y4 = model2_trans_nonuniform([0.0,2.0],[0.0,2.0],0.025,g1fun,g2fun,0.5,[0.0,1.0],f0_fun)
 
 val_exact, X5,Y5 = model2_exact([101,101],[0.0,2.0],[0.0,2.0],g1fun,g2fun,f0_fun,[0.0,1.0])
-val_exact_ana, X6, Y6 = model2_exact_analytical([51,51],[0.0,2.0],[0.0,2.0],g1fun,g2fun,a1tilde,a2tilde,a1,a2,f0_fun,1.0)
+val_exact_ana, X6, Y6 = model2_exact_analytical([101,101],[0.0,2.0],[0.0,2.0],g1fun,g2fun,a1tilde,a2tilde,a1,a2,f0_fun,1.0)
 
 """
 Plotting
@@ -91,7 +87,7 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(0,50)
 plt.tight_layout()
-plt.savefig("case2_conupwind_uni.png",dpi=300)
+# plt.savefig("case2_conupwind_uni.png",dpi=300)
 
 #Upwind-Trans-Uniform
 fig3 = plt.figure(num=3)
@@ -101,7 +97,7 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(0,50)
 plt.tight_layout()
-plt.savefig("case2_transupwind_uni.png",dpi=300)
+# plt.savefig("case2_transupwind_uni.png",dpi=300)
 
 #Upwind-Con-Nonuniform
 fig4 = plt.figure(num=4)
@@ -111,7 +107,7 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(0,50)
 plt.tight_layout()
-plt.savefig("case2_conupwind_nonuni.png",dpi=300)
+# plt.savefig("case2_conupwind_nonuni.png",dpi=300)
 
 #Upwind-Trans-Nonuniform
 fig5 = plt.figure(num=5)
@@ -121,7 +117,7 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(0,50)
 plt.tight_layout()
-plt.savefig("case2_transupwind_nonuni.png",dpi=300)
+# plt.savefig("case2_transupwind_nonuni.png",dpi=300)
 
 #Exact
 fig6 = plt.figure(num=6)
@@ -131,7 +127,7 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(0,50)
 plt.tight_layout()
-plt.savefig("case2_exact_num.png",dpi=300)
+# plt.savefig("case2_exact_num.png",dpi=300)
 
 #Exact with Analytical Functions
 fig7 = plt.figure(num=7)
@@ -141,7 +137,7 @@ plt.xlabel(r"$a_{1}$")
 plt.ylabel(r"$a_{2}$")
 plt.clim(0,50)
 plt.tight_layout()
-plt.savefig("case2_exact_ana.png",dpi=300)
+# plt.savefig("case2_exact_ana.png",dpi=300)
 
 #Plot Exact Mesh
 fig8 = plt.figure(num=8)

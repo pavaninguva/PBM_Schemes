@@ -1,7 +1,8 @@
 from model5 import *
 import matplotlib.pyplot as plt
 import numpy as np
-from fipy import *
+from clawpack import riemann
+from clawpack import pyclaw
 
 #formatting
 plt.rcParams["text.usetex"] = True
@@ -27,42 +28,53 @@ def int_lambda(x,y):
     f = x*y
     return f
 
-def model5_vanleer(nx,ny,Lx,Ly,gvec,tvec):
-    #Setting up mesh with domain size Lx=Ly = 2.0
+def model5_weno(nx,ny,Lx,Ly,gvec,tvec):
+
+    riemann_solver = riemann.advection_2D
+    solver = pyclaw.SharpClawSolver2D(riemann_solver)
+    solver.kernel_language = "Fortran"
+    solver.weno_order = 5
+    solver.lim_type = 2
+    solver.cfl_max = 1.0
+
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[1] = pyclaw.BC.periodic
+    solver.bc_upper[1] = pyclaw.BC.periodic
+
     nx = nx
-    ny = ny
-    dx = Lx/nx
-    dy = Ly/ny
-    mesh = PeriodicGrid2D(nx=nx,ny=ny,dx=dx,dy=dy)
+    ny = ny 
+    Lx = Lx 
+    Ly = Ly
+    x = pyclaw.Dimension(0.0,Lx,nx,name="x")
+    y = pyclaw.Dimension(0.0,Ly,ny,name="y")
+    domain = pyclaw.Domain([x,y])
+    state = pyclaw.State(domain,solver.num_eqn)
+    state.problem_data["u"] = 1.0
+    state.problem_data["v"] = 1.0
 
-    #Specify parameters
-    convCoeff = (gvec[0],gvec[1])
-    CFL = 0.25
-    dt = CFL/((convCoeff[0]/dx) + (convCoeff[1]/dy))
-    f1 = CellVariable(mesh=mesh, name=r"$f_{1}$")
-    #Define Initial Condition
-    x = mesh.cellCenters[0]
-    y = mesh.cellCenters[1]
-    f1.setValue(50.0*numerix.exp(-(((x-0.4)**2)/0.005) -((y-0.4)**2)/0.005))
+    def source_step(solver,state,dt):
+        x_c, y_c = state.grid.p_centers
+        step = -dt*(x_c+y_c)*state.q[0,:,:]
+        return step
 
-    #Specify equation
-    eq1 = TransientTerm(var=f1) + VanLeerConvectionTerm(var=f1, coeff=convCoeff) == -(x+y)*f1
+    solver.dq_src = source_step
 
-    #Solve Equations
-    run_time = tvec[1]
-    t = tvec[0]
-    while t < run_time - 1e-8:
-        eq1.solve(dt=dt)
-        #Update time
-        t = t+dt
-        print("Current Simulation Time is %s"%t)
+    xc, yc = domain.grid.p_centers
+    state.q[0,:,:] = (50.0*np.exp(-(((xc-0.4)**2)/0.005) -((yc-0.4)**2)/0.005))
 
-    #Reshape to Numpy arrays
-    f1_np = np.asarray(f1).reshape(nx,-1)
+    claw = pyclaw.Controller()
+    claw.keep_copy = True
+    claw.solution = pyclaw.Solution(state, domain)
+    claw.tfinal = 1.0
+    claw.solver = solver
 
-    #Compute analytical solution
-    f_ana_ = analytical(x,y,1.0)
-    f_ana = np.asarray(f_ana_).reshape(nx,-1)
+    status = claw.run()
+    print(status)
+    f1_np = claw.frames[-1].q[0,:,:]
+
+    f_ana = analytical(1.0,xc,yc)
+        
 
     return f1_np, f_ana
 
@@ -70,10 +82,10 @@ def model5_vanleer(nx,ny,Lx,Ly,gvec,tvec):
 Run simulations
 """
 
-n_cell_vals = np.array([11,21,41,51,81,101,161,201])
+n_cell_vals = np.array([41,51,81,101,161,201])
 
-vanleer_rmse = np.zeros(len(n_cell_vals))
-vanleer_mae = np.zeros(len(n_cell_vals))
+weno_rmse = np.zeros(len(n_cell_vals))
+weno_mae = np.zeros(len(n_cell_vals))
 
 upwind_rmse = np.zeros(len(n_cell_vals))
 upwind_mae = np.zeros(len(n_cell_vals))
@@ -84,12 +96,12 @@ exact_mae = np.zeros(len(n_cell_vals))
 for i in range(len(n_cell_vals)):
     #Extract n_cells
     n_cell = n_cell_vals[i]
-    n_cell_fipy = n_cell - 1
+    n_cell_pyclaw = n_cell - 1
 
     #Van leer and error
-    val_vanleer, val_ana_fipy = model5_vanleer(n_cell_fipy,n_cell_fipy,2.0,2.0,[1.0,1.0],[0.0,1.0])
-    vanleer_rmse[i] = np.sqrt(np.mean((val_ana_fipy-val_vanleer)**2))
-    vanleer_mae[i] = np.amax(np.abs(val_vanleer-val_ana_fipy))
+    val_weno, val_ana_pyclaw = model5_weno(n_cell_pyclaw,n_cell_pyclaw,2.0,2.0,[1.0,1.0],[0.0,1.0])
+    weno_rmse[i] = np.sqrt(np.mean((val_ana_pyclaw-val_weno)**2))
+    weno_mae[i] = np.amax(np.abs(val_weno-val_ana_pyclaw))
 
     #upwind
     val_upwind, X, Y = model5_upwind([n_cell,n_cell],[2.0,2.0],[1.0,1.0],[0.0,1.0],1.0,lambdafun,f0_fun)
@@ -109,7 +121,7 @@ Plotting
 
 fig1 = plt.figure(num=1)
 plt.loglog(np.square(n_cell_vals),upwind_rmse,"-ko",label="Upwind",markerfacecolor="none")
-plt.loglog(np.square(n_cell_vals),vanleer_rmse,"-bo",label="Van Leer",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),weno_rmse,"-bo",label="WENO",markerfacecolor="none")
 plt.loglog(np.square(n_cell_vals),exact_rmse,"-ro",label="Exact",markerfacecolor="none")
 plt.xlabel(r"$N_{Cells}$")
 plt.ylabel(r"RMSE")
@@ -120,7 +132,7 @@ plt.savefig("case5_rmse.png",dpi=300)
 
 fig2 = plt.figure(num=2)
 plt.loglog(np.square(n_cell_vals),upwind_mae,"-ko",label="Upwind",markerfacecolor="none")
-plt.loglog(np.square(n_cell_vals),vanleer_mae,"-bo",label="Van Leer",markerfacecolor="none")
+plt.loglog(np.square(n_cell_vals),weno_mae,"-bo",label="WENO",markerfacecolor="none")
 plt.loglog(np.square(n_cell_vals),exact_mae,"-ro",label="Exact",markerfacecolor="none")
 plt.xlabel(r"$N_{Cells}$")
 plt.ylabel(r"MAE")
