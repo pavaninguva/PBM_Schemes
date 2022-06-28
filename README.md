@@ -6,7 +6,7 @@ This repository contains scripts that can be used to explore the numerical solut
 If you found the material in this repository useful for your work, please consider citing the following articles:
 
 1. Pavan K. Inguva, Kaylee C. Schickel, and Richard D. Braatz (Apr. 2022). “Efficient numerical schemes for population balance models”. In: Computers & Chemical Engineering, p. 107808 (https://doi.org/10.1016/j.compchemeng.2022.107808)
-2. A second manuscript outlining the schemes for the 2D/n-dimensional PBMs will be made available shortly. 
+2. Pavan Inguva and Richard D. Braatz (Jun. 2022). "Efficient Numerical Schemes for Multidimensional Population Balance Models". 	arXiv:2206.12404 (https://arxiv.org/abs/2206.12404) 
 
 If you require some assistance learning how to use FiPy to solve PBMs and other PDEs, consider exploring the repo https://github.com/pavaninguva/pde-Solver-Course and reviewing the following paper:
 
