@@ -3,6 +3,8 @@ This repository contains scripts that can be used to explore the numerical solut
 
 ## Citing
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6984558.svg)](https://doi.org/10.5281/zenodo.6984558)
+
 If you found the material in this repository useful for your work, please consider citing the following articles:
 
 1. Pavan K. Inguva, Kaylee C. Schickel, and Richard D. Braatz (Apr. 2022). “Efficient numerical schemes for population balance models”. In: Computers & Chemical Engineering, p. 107808 (https://doi.org/10.1016/j.compchemeng.2022.107808)
